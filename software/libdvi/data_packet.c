@@ -206,7 +206,7 @@ void __not_in_flash_func(set_null)(void *data, int size) {
     }
 }
 
-int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_ring_t *audio_ring, int n, int g, int frameCt) {
+int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_ring_t *audio_ring, const int n, const int g, int frameCt) {
     const int layout = 0;
     const int samplePresent = (1 << n) - 1;
     const int B = (frameCt < n) ? (1 << frameCt) : 0;
@@ -240,7 +240,7 @@ int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_rin
         bool pl = compute8_3(d[1], d[2], vuc);
         bool pr = compute8_3(d[4], d[5], vuc);
         d[6] = (vuc << 0) | (pl << 3) | (vuc << 4) | (pr << 7);
-        compute_subpacket_parity(data_packet, i);
+        d[7] = encode_BCH_7(d);
 
         // channel status (is it relevant?)
         // After testing, seems better to ignore

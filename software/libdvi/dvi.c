@@ -412,10 +412,10 @@ bool __dvi_func(dvi_update_data_packet_)(struct dvi_inst *inst, data_packet_t *p
             return true;
         }
     }
-    int sample_pos_24 = inst->audio_sample_pos >> 24;
-    int read_size = get_read_size(&inst->audio_ring, true);
-    int n = MIN(4, sample_pos_24);
-    int g = MIN(n, read_size);
+    const int sample_pos_24 = inst->audio_sample_pos >> 24;
+    const int read_size = get_read_size(&inst->audio_ring, true);
+    const int n = MIN(4, sample_pos_24);
+    const int g = MIN(n, read_size);
     if (n)
     {
         inst->audio_sample_pos -= (n << 24);
