@@ -206,7 +206,7 @@ void __not_in_flash_func(set_null)(void *data, int size) {
     }
 }
 
-int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_ring_t *audio_ring, const int n, const int g, int frameCt) {
+int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_ring_t *audio_ring, const int n, int frameCt) {
     const int layout = 0;
     const int samplePresent = (1 << n) - 1;
     const int B = (frameCt < n) ? (1 << frameCt) : 0;
@@ -214,11 +214,12 @@ int  __not_in_flash_func(set_audio_sample)(data_packet_t *data_packet, audio_rin
     data_packet->header[1] = (layout << 4) | samplePresent;
     data_packet->header[2] = B << 4;
     compute_header_parity(data_packet);
+    const int read_size = get_read_size(audio_ring, true);
 
     for (int i = 0; i < n; ++i)
     {
         int16_t l, r;
-        if (i < g) {
+        if (i < read_size) {
             audio_sample_t *audio_sample_ptr = get_read_pointer(audio_ring);
             l = (*audio_sample_ptr).channels[0];
             r = (*audio_sample_ptr).channels[1];
