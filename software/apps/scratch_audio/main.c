@@ -103,7 +103,21 @@ typedef struct {
 
 typedef uint8_t SpriteId;
 
-#define SPRITE_ID_WORDS ((FRAME_WIDTH + 3) >> 2)
+typedef struct {
+	Tile16x16p2_t *t;
+	Pallet1_t *p;
+	int32_t x;
+	int32_t y;
+	SpriteId id;
+} Sprite16x16p1;
+
+#define MAX_SPRITES 255
+
+
+// ----------------------------------------------------------------------------
+// Sprite collisions
+// ----------------------------------------------------------------------------
+#define SPRITE_ID_ROW_WORDS ((FRAME_WIDTH + 3) >> 2)
 
 typedef union {
 	SpriteId id[FRAME_WIDTH];
@@ -111,11 +125,13 @@ typedef union {
 } SpriteIdRow;
 
 static SpriteIdRow _spriteIdRow;
+static SpriteId _spriteIdChain[MAX_SPRITES]; 
 
 void __not_in_flash_func(clear_sprite_id_row)() {
-	for(uint32_t i = 0; i < SPRITE_ID_WORDS; ++i) _spriteIdRow.word[i] = 0;
+	for(uint32_t i = 0; i < SPRITE_ID_ROW_WORDS; ++i) _spriteIdRow.word[i] = 0;
 }
 
+// ----------------------------------------------------------------------------
 
 
 void __not_in_flash_func(render_row_mono)(
@@ -271,12 +287,16 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 	}}	
 };
 
+Sprite16x16p1 sprites[] = {
+    {&tile16x16p2_invader[0], &pallet1_Green, 50, 50, 1},
+    {&tile16x16p2_invader[0], &pallet1_Green, 66, 50, 1}};
+
 void __not_in_flash_func(core1_main)() {
 	dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
 	dvi_start(&dvi0);
 	uint32_t frames = 0;
 	while (true) {
-		for (uint y = 0; y < FRAME_HEIGHT; ++y) {
+		for (uint32_t y = 0; y < FRAME_HEIGHT; ++y) {
 			uint32_t *tmdsbuf;
 			clear_sprite_id_row();
 			queue_remove_blocking(&dvi0.q_tmds_free, &tmdsbuf);
@@ -286,22 +306,34 @@ void __not_in_flash_func(core1_main)() {
 
 			render_row_mono(
 				dr, dg, db,
-				8, 0, 8
-			);
+				8, 0, 8);
 
-			for(int32_t i = -(frames & 15); i < FRAME_WIDTH; i += 16) {
-				render_Tile16x16p1(
-					&tile16x16p2_invader[(frames >> 2) & 1],
-					&pallet1_Green,
-					dr, dg, db,
-					i,
-					y & 15,
-					y
-				);
+			for (uint32_t i = 0; i < 2; ++i)
+			{
+				const Sprite16x16p1 *sprite = &sprites[i];
+				const uint32_t r = y - sprite->y;
+				if (r < 16)
+				{
+					render_Tile16x16p1(
+						sprite->t,
+						sprite->p,
+						dr, dg, db,
+						sprite->x,
+						r,
+						sprite->id);
+				}
 			}
 			queue_add_blocking(&dvi0.q_tmds_valid, &tmdsbuf);
 		}
 		++frames;
+
+		for (uint32_t i = 0; i < 2; ++i)
+		{
+			Sprite16x16p1 *sprite = &sprites[i];
+			sprite->t = &tile16x16p2_invader[frames >> 2 & 1];
+		}
+		sprites[0].x++; if (sprites[0].x > FRAME_WIDTH) sprites[0].x = -16; 
+		sprites[1].x--; if (sprites[1].x < -16) sprites[1].x = FRAME_WIDTH + 16; 
 	}
 }
 
