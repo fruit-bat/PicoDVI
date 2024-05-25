@@ -101,6 +101,23 @@ typedef struct {
 	uint16_t d[16];
 } Tile16x16p2_t;
 
+typedef uint8_t SpriteId;
+
+#define SPRITE_ID_WORDS ((FRAME_WIDTH + 3) >> 2)
+
+typedef union {
+	SpriteId id[FRAME_WIDTH];
+	uint32_t word[FRAME_WIDTH];
+} SpriteIdRow;
+
+static SpriteIdRow _spriteIdRow;
+
+void __not_in_flash_func(clear_sprite_id_row)() {
+	for(uint32_t i = 0; i < SPRITE_ID_WORDS; ++i) _spriteIdRow.word[i] = 0;
+}
+
+
+
 void __not_in_flash_func(render_row_mono)(
 	uint32_t *dr,
 	uint32_t *dg,
@@ -123,7 +140,8 @@ void __not_in_flash_func(render_Tile16x16p1)(
 	uint32_t * const dg,
 	uint32_t * const db,
 	const int32_t tdmsI,
-	const int32_t row
+	const int32_t row,
+	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
 	if (d)
@@ -141,6 +159,10 @@ void __not_in_flash_func(render_Tile16x16p1)(
 					dr[j] = fgr;
 					dg[j] = fgg;
 					db[j] = fgb;
+					if (_spriteIdRow.id[j]) {
+						// TODO handle sprite collision
+					}
+					_spriteIdRow.id[j] = spriteId;
 				}
 				d <<= 1;
 			}
@@ -155,6 +177,10 @@ void __not_in_flash_func(render_Tile16x16p1)(
 					dr[j] = fgr;
 					dg[j] = fgg;
 					db[j] = fgb;
+					if (_spriteIdRow.id[j]) {
+						// TODO handle sprite collision
+					}
+					_spriteIdRow.id[j] = spriteId;
 				}
 				d <<= 1;
 			}
@@ -252,6 +278,7 @@ void __not_in_flash_func(core1_main)() {
 	while (true) {
 		for (uint y = 0; y < FRAME_HEIGHT; ++y) {
 			uint32_t *tmdsbuf;
+			clear_sprite_id_row();
 			queue_remove_blocking(&dvi0.q_tmds_free, &tmdsbuf);
 			uint32_t *dr = tmdsbuf;
 			uint32_t *dg = dr + FRAME_WIDTH;
@@ -264,11 +291,12 @@ void __not_in_flash_func(core1_main)() {
 
 			for(int32_t i = -(frames & 15); i < FRAME_WIDTH; i += 16) {
 				render_Tile16x16p1(
-					&tile16x16p2_invader[(frames >> 6) & 1],
+					&tile16x16p2_invader[(frames >> 2) & 1],
 					&pallet1_Green,
 					dr, dg, db,
 					i,
-					y & 15
+					y & 15,
+					y
 				);
 			}
 			queue_add_blocking(&dvi0.q_tmds_valid, &tmdsbuf);
