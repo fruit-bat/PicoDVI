@@ -75,7 +75,7 @@
 #define MAP_WIDTH  512
 #define MAP_HEIGHT 256
 
-#define N_CHARACTERS 50
+#define N_CHARACTERS 10
 
 typedef struct {
 	int16_t pos_x;
@@ -226,8 +226,6 @@ void __not_in_flash_func(core1_loop)() {
 		}
 	}
 }
-
-
 
 // ----------------------------------------------------------------------------
 //Audio Related

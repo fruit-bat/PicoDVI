@@ -18,3 +18,5 @@ add_subdirectory(tiles_parallax)
 add_subdirectory(vista)
 add_subdirectory(vista-palette)
 add_subdirectory(mandel-full)
+add_subdirectory(scratch_audio)
+
