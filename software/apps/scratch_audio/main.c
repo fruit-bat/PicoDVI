@@ -17,6 +17,12 @@
 #include "common_dvi_pin_configs.h"
 #include "audio.h"
 
+#include "font_8x8.h"
+#define FONT_CHAR_WIDTH 8
+#define FONT_CHAR_HEIGHT 8
+#define FONT_N_CHARS 95
+#define FONT_FIRST_ASCII 32
+
 #define MODE_640x480_60Hz
 // DVDD 1.2V (1.1V seems ok too)
 #define FRAME_WIDTH 320
@@ -213,7 +219,7 @@ static inline void render_sprite_pixel(
 	}
 }
 
-static inline void render_row_16_p1(
+static inline void render_row_n_p1(
 	uint32_t d,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
@@ -221,17 +227,18 @@ static inline void render_row_16_p1(
 	uint32_t * const db,
 	const int32_t tdmsI,
 	const int32_t row,
-	const SpriteId spriteId
+	const SpriteId spriteId,
+	const uint32_t w
 ) {
 	if (d)
 	{
 		const uint32_t fgr = tmds_table[p->r[0]];
 		const uint32_t fgg = tmds_table[p->g[0]];
 		const uint32_t fgb = tmds_table[p->b[0]];
-		const uint32_t bm = 1 << 15;
-		if (((uint32_t)tdmsI) < (FRAME_WIDTH - 16))
+		const uint32_t bm = 1 << (w-1);
+		if (((uint32_t)tdmsI) < (FRAME_WIDTH - w))
 		{
-			for (int32_t i = 0; i < 16; i++)
+			for (int32_t i = 0; i < w; i++)
 			{
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if (d & bm)
@@ -243,12 +250,58 @@ static inline void render_row_16_p1(
 		}
 		else
 		{
-			for (int32_t i = 0; i < 16; i++)
+			for (int32_t i = 0; i < w; i++)
 			{
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if ((j < FRAME_WIDTH) && (d & bm))
 				{
 					render_sprite_pixel(dr, dg, db, fgr, fgg, fgb, spriteId, j);
+				}
+				d <<= 1;
+			}
+		}
+	}
+}
+
+static inline void render_row_text_8_p1(
+	uint32_t d,
+	const Pallet1_t * const p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row
+) {
+	if (d)
+	{
+		const uint32_t fgr = tmds_table[p->r[0]];
+		const uint32_t fgg = tmds_table[p->g[0]];
+		const uint32_t fgb = tmds_table[p->b[0]];
+		const uint32_t bm = 1 << 15;
+		if (((uint32_t)tdmsI) < (FRAME_WIDTH - 16))
+		{
+			for (int32_t i = 0; i < 8; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if (d & bm)
+				{
+					dr[j] = fgr;
+					dg[j] = fgg;
+					db[j] = fgb;
+				}
+				d <<= 1;
+			}
+		}
+		else
+		{
+			for (int32_t i = 0; i < 8; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if ((j < FRAME_WIDTH) && (d & bm))
+				{
+					dr[j] = fgr;
+					dg[j] = fgg;
+					db[j] = fgb;
 				}
 				d <<= 1;
 			}
@@ -267,7 +320,7 @@ static inline void render_Tile16x16p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	render_row_16_p1(
+	render_row_n_p1(
 		d,
 		p,
 		dr,
@@ -275,7 +328,8 @@ static inline void render_Tile16x16p1(
 		db,
 		tdmsI,
 		row,
-		spriteId
+		spriteId,
+		16
 	);
 }
 
@@ -290,7 +344,7 @@ static inline void render_Tile16x8p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	render_row_16_p1(
+	render_row_n_p1(
 		d,
 		p,
 		dr,
@@ -298,7 +352,8 @@ static inline void render_Tile16x8p1(
 		db,
 		tdmsI,
 		row,
-		spriteId
+		spriteId,
+		16
 	);
 }
 
@@ -313,37 +368,17 @@ static inline void render_Tile32x16p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	if (d)
-	{
-		const uint32_t fgr = tmds_table[p->r[0]];
-		const uint32_t fgg = tmds_table[p->g[0]];
-		const uint32_t fgb = tmds_table[p->b[0]];
-		const uint32_t bm = 1 << 31;
-		if (((uint32_t)tdmsI) < (FRAME_WIDTH - 16))
-		{
-			for (int32_t i = 0; i < 32; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if (d & bm)
-				{
-					render_sprite_pixel(dr, dg, db, fgr, fgg, fgb, spriteId, j);
-				}
-				d <<= 1;
-			}
-		}
-		else
-		{
-			for (int32_t i = 0; i < 32; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if ((j < FRAME_WIDTH) && (d & bm))
-				{
-					render_sprite_pixel(dr, dg, db, fgr, fgg, fgb, spriteId, j);
-				}
-				d <<= 1;
-			}
-		}
-	}
+	render_row_n_p1(
+		d,
+		p,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId,
+		32
+	);
 }
 
 void __not_in_flash_func(sprite_renderer_sprite_16x8_p1)(
@@ -474,9 +509,54 @@ Pallet1_t pallet1_Purple = {
 	{ (uint8_t)32 }
 };
 
-Tile16x8p2_t tile16x8p2_invader[2] = {
+Pallet1_t pallet1_White = {
+	{ (uint8_t)32 },
+	{ (uint8_t)32 },
+	{ (uint8_t)32 }
+};
+
+Tile16x8p2_t tile16x8p2_invader[] = {
 	{{
-	//   0123456789012345 
+		0b0000000110000000,
+		0b0000001111000000,
+		0b0000011111100000,
+		0b0000110110110000,
+		0b0000111111110000,
+		0b0000010000100000,
+		0b0000100000010000,
+		0b0000010000100000,
+	}},
+	{{
+		0b0000000110000000,
+		0b0000001111000000,
+		0b0000011111100000,
+		0b0000110110110000,
+		0b0000111111110000,
+		0b0000001001000000,
+		0b0000010110100000,
+		0b0000101001010000,
+	}},
+	{{
+		0b0000100000100000,
+		0b0000010001000000,
+		0b0000111111100000,
+		0b0001101110110000,
+		0b0011111111111000,
+		0b0101111111110100,
+		0b0101000000010100,
+		0b0000111011100000,
+	}},
+	{{
+		0b0000100000100000,
+		0b0000010001000000,
+		0b0100111111100100,
+		0b0101101110110100,
+		0b0111111111111100,
+		0b0011111111111000,
+		0b0001000000010000,
+		0b0010000000001000,
+	}},
+	{{
 		0b0000001111000000,
 		0b0001111111111000,
 		0b0011111111111100,
@@ -487,7 +567,6 @@ Tile16x8p2_t tile16x8p2_invader[2] = {
 		0b0000110000110000,
 	}},
 	{{
-	//   0123456789012345 
 		0b0000001111000000,
 		0b0001111111111000,
 		0b0011111111111100,
@@ -557,9 +636,12 @@ void init_game() {
 	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
 
 	inv_index = si;
+	uint32_t rt[5] = {0, 2, 2, 4, 4};
+	Pallet1_t* rp[5] = {&pallet1_White, &pallet1_Blue, &pallet1_Blue, &pallet1_Purple, &pallet1_Purple};
+
 	for(uint32_t x = 0; x < 11; ++x) {
 		for(uint32_t y = 0; y < 5; ++y) {
-			init_sprite(si, x << 4, 30 + (y << 4), 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
+			init_sprite(si, x << 4, 30 + (y << 4), 16, 8, SF_ENABLE, &tile16x8p2_invader[rt[y]], rp[y], sprite_renderer_invader_16x8_p1);
 			_spriteCollisionMasks[si] = (SpriteCollisionMask)4;
 			si++;
 		}
@@ -585,7 +667,7 @@ void __not_in_flash_func(core1_main)() {
 			// TODO optionally render a tiled background
 			render_row_mono(
 				dr, dg, db,
-				8, 0, 8);
+				0, 0, 0);
 
 			for (uint32_t i = 0; i < MAX_SPRITES; ++i)
 			{
