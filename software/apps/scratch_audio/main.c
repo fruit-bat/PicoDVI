@@ -82,6 +82,24 @@ typedef struct {
 	int32_t y;
 } Sprite16x16p1;
 
+typedef void (*SpriteRenderer)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+);
+
+typedef struct Sprite {
+	int32_t x,y;
+	uint32_t w,h,f;
+	void *d1, *d2;
+	SpriteRenderer r;
+} Sprite;
+
 #define MAX_SPRITES (1<<8)
 
 // ----------------------------------------------------------------------------
@@ -154,7 +172,7 @@ static inline void render_sprite_pixel(
 	}
 }
 
-void __not_in_flash_func(render_Tile16x16p1)(
+static inline void render_Tile16x16p1(
 	const Tile16x16p2_t * const t,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
@@ -198,7 +216,7 @@ void __not_in_flash_func(render_Tile16x16p1)(
 	}
 }
 
-void __not_in_flash_func(render_Tile32x16p1)(
+static inline void render_Tile32x16p1(
 	const Tile32x16p2_t * const t,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
@@ -240,6 +258,50 @@ void __not_in_flash_func(render_Tile32x16p1)(
 			}
 		}
 	}
+}
+
+void __not_in_flash_func(sprite_renderer_sprite_16x16_p1)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	render_Tile16x16p1(
+		d1,
+		d2,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
+}
+
+void __not_in_flash_func(sprite_renderer_sprite_32x16_p1)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	render_Tile32x16p1(
+		d1,
+		d2,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
 }
 
 void __not_in_flash_func(render_Tile16x16p2)(
@@ -343,8 +405,8 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 	}}	
 };
 
-Tile32x16p2_t tile32x16p2_base[1] = {
-	{{
+Tile32x16p2_t tile32x16p2_base = {
+	{
 	//   0123456789012345 
 		0b00000000011111111111111000000000,
 		0b00000000111111111111111100000000,
@@ -362,27 +424,14 @@ Tile32x16p2_t tile32x16p2_base[1] = {
 		0b00000111111000000000011111100000,
 		0b00000111110000000000001111100000,
 		0b00000111110000000000001111100000,
-	}}
+	}
 };
 
-Sprite16x16p1 sprites[] = {
-    {&tile16x16p2_invader[0], &pallet1_Green, 50, 50},
-    {&tile16x16p2_invader[0], &pallet1_Green, 66, 50},
-	
-   {&tile16x16p2_invader[0], &pallet1_Green,   6, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   16, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   26, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   36, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   46, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   56, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   66, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   76, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   86, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   96, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   106, 100},
-   {&tile16x16p2_invader[0], &pallet1_Green,   116, 100},
+Sprite sprites[] = {
+   { 50, 50, 16, 16, 0, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1 },
+   { 66, 50, 16, 16, 0, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1 },
+   { 66, 200, 32, 16, 0, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1 },
 };
-
 
 void __not_in_flash_func(core1_main)() {
 _spriteCollisionMasks[0] = (SpriteCollisionMask)1;
@@ -405,15 +454,15 @@ _spriteCollisionMasks[1] = (SpriteCollisionMask)2;
 				dr, dg, db,
 				8, 0, 8);
 
-			for (uint32_t i = 0; i < 14; ++i)
+			for (uint32_t i = 0; i < 3; ++i)
 			{
-				const Sprite16x16p1 *sprite = &sprites[i];
+				const Sprite *sprite = &sprites[i];
 				const uint32_t r = y - sprite->y;
 				if (r < 16)
 				{
-					render_Tile16x16p1(
-						sprite->t,
-						sprite->p,
+					(sprite->r)(
+						sprite->d1,
+						sprite->d2,
 						dr, dg, db,
 						sprite->x,
 						r,
@@ -427,17 +476,17 @@ _spriteCollisionMasks[1] = (SpriteCollisionMask)2;
 		// Just messing about - start
 		for (uint32_t i = 0; i < 2; ++i)
 		{
-			Sprite16x16p1 *sprite = &sprites[i];
-			sprite->t = &tile16x16p2_invader[frames >> 2 & 1];
-			if (_spriteCollisions.m[i]) sprite->p = &pallet1_Red;
+			Sprite *sprite = &sprites[i];
+			sprite->d1 = &tile16x16p2_invader[frames >> 2 & 1];
+			if (_spriteCollisions.m[i]) sprite->d2 = &pallet1_Red;
 		}
 		sprites[0].x++; if (sprites[0].x > FRAME_WIDTH) {
 			sprites[0].x = -16;
-			sprites[0].p = &pallet1_Blue;
+			sprites[0].d2 = &pallet1_Blue;
 		}
 		sprites[1].x--; if (sprites[1].x < -16) {
 			sprites[1].x = FRAME_WIDTH + 16; 
-			sprites[1].p = &pallet1_Purple;
+			sprites[1].d2 = &pallet1_Purple;
 		}
 		// Just messing about - end
 	}
