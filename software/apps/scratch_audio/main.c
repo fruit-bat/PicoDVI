@@ -521,6 +521,29 @@ Tile32x16p2_t tile32x16p2_base = {
 	}
 };
 
+void __not_in_flash_func(sprite_renderer_invader_16x8_p1)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	const Tile16x8p2_t *tile16x8p2_invader = (Tile16x8p2_t *)d1;
+	render_Tile16x8p1(
+		&tile16x8p2_invader[(tdmsI >> 2) & 1],
+		d2,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
+}
+
 static uint32_t inv_index;
 static int32_t inv_v = 1;
 void init_game() {
@@ -529,14 +552,14 @@ void init_game() {
 	_spriteCollisionMasks[2] = (SpriteCollisionMask)8;
 
 	uint32_t si = 0;	
-	init_sprite(si++, 50, 5, 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
-	init_sprite(si++, 66, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
+	init_sprite(si++, 50, 5, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
+	init_sprite(si++, 66, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
 	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
 
 	inv_index = si;
 	for(uint32_t x = 0; x < 11; ++x) {
 		for(uint32_t y = 0; y < 5; ++y) {
-			init_sprite(si, x << 4, 30 + (y << 4), 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
+			init_sprite(si, x << 4, 30 + (y << 4), 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
 			_spriteCollisionMasks[si] = (SpriteCollisionMask)4;
 			si++;
 		}
@@ -587,7 +610,6 @@ void __not_in_flash_func(core1_main)() {
 		for (uint32_t i = 0; i < 2; ++i)
 		{
 			Sprite *sprite = &_sprites[i];
-			sprite->d1 = &tile16x8p2_invader[frames >> 2 & 1];
 			if (_spriteCollisions.m[i]) sprite->d2 = &pallet1_Red;
 		}
 		_sprites[0].x++; if (_sprites[0].x > FRAME_WIDTH) {
@@ -604,7 +626,6 @@ void __not_in_flash_func(core1_main)() {
 		{
 			Sprite *sprite = &_sprites[i];
 			sprite->x += inv_v;
-			sprite->d1 = &tile16x8p2_invader[(sprite->x >> 2) & 1];
 			if (inv_v > 0) {
 				if(sprite->x + 16 >= FRAME_WIDTH) reverse = true;
 			}
