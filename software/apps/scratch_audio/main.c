@@ -102,37 +102,47 @@ typedef struct {
 } Tile16x16p2_t;
 
 typedef uint8_t SpriteId;
+typedef uint8_t SpriteCollisionMask;
 
 typedef struct {
 	Tile16x16p2_t *t;
 	Pallet1_t *p;
 	int32_t x;
 	int32_t y;
-	SpriteId id;
 } Sprite16x16p1;
 
-#define MAX_SPRITES 255
-
+#define MAX_SPRITES (1<<8)
 
 // ----------------------------------------------------------------------------
 // Sprite collisions
+// 
+// Collide with the drawn sprite only 
 // ----------------------------------------------------------------------------
 #define SPRITE_ID_ROW_WORDS ((FRAME_WIDTH + 3) >> 2)
 
 typedef union {
 	SpriteId id[FRAME_WIDTH];
-	uint32_t word[FRAME_WIDTH];
+	uint32_t word[SPRITE_ID_ROW_WORDS];
 } SpriteIdRow;
 
-static SpriteIdRow _spriteIdRow;
-static SpriteId _spriteIdChain[MAX_SPRITES]; 
+typedef union {
+	SpriteCollisionMask m[MAX_SPRITES];
+	uint32_t word[MAX_SPRITES >> 2];
+} SpriteCollisions;
+
+static SpriteCollisionMask _spriteCollisionMasks[MAX_SPRITES];
+static SpriteIdRow _spriteIdRow; 
+static SpriteCollisions _spriteCollisions;
 
 void __not_in_flash_func(clear_sprite_id_row)() {
 	for(uint32_t i = 0; i < SPRITE_ID_ROW_WORDS; ++i) _spriteIdRow.word[i] = 0;
 }
 
-// ----------------------------------------------------------------------------
+void __not_in_flash_func(clear_sprite_collisions)() {
+	for(uint32_t i = 0; i < MAX_SPRITES >> 2; ++i) _spriteCollisions.word[i] = 0;
+}
 
+// ----------------------------------------------------------------------------
 
 void __not_in_flash_func(render_row_mono)(
 	uint32_t *dr,
@@ -172,13 +182,18 @@ void __not_in_flash_func(render_Tile16x16p1)(
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if (d & (1 << 15))
 				{
-					dr[j] = fgr;
-					dg[j] = fgg;
-					db[j] = fgb;
-					if (_spriteIdRow.id[j]) {
-						// TODO handle sprite collision
+					const SpriteId ncid = _spriteIdRow.id[j];
+					if (ncid) {
+						const SpriteId cid = ncid - 1;
+						_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
+						_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
 					}
-					_spriteIdRow.id[j] = spriteId;
+					else {
+						dr[j] = fgr;
+						dg[j] = fgg;
+						db[j] = fgb;
+						_spriteIdRow.id[j] = spriteId + 1;
+					}
 				}
 				d <<= 1;
 			}
@@ -190,13 +205,18 @@ void __not_in_flash_func(render_Tile16x16p1)(
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if ((j < FRAME_WIDTH) && (d & (1 << 15)))
 				{
-					dr[j] = fgr;
-					dg[j] = fgg;
-					db[j] = fgb;
-					if (_spriteIdRow.id[j]) {
-						// TODO handle sprite collision
+					const SpriteId ncid = _spriteIdRow.id[j];
+					if (ncid) {
+						const SpriteId cid = ncid - 1;
+						_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
+						_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
 					}
-					_spriteIdRow.id[j] = spriteId;
+					else {
+						dr[j] = fgr;
+						dg[j] = fgg;
+						db[j] = fgb;
+						_spriteIdRow.id[j] = spriteId + 1;
+					}
 				}
 				d <<= 1;
 			}
@@ -248,6 +268,24 @@ Pallet1_t pallet1_Green = {
 	{ (uint8_t)0 }
 };
 
+Pallet1_t pallet1_Red = {
+	{ (uint8_t)63 },
+	{ (uint8_t)0 },
+	{ (uint8_t)0 }
+};
+
+Pallet1_t pallet1_Blue = {
+	{ (uint8_t)0 },
+	{ (uint8_t)0 },
+	{ (uint8_t)63 }
+};
+
+Pallet1_t pallet1_Purple = {
+	{ (uint8_t)32 },
+	{ (uint8_t)0 },
+	{ (uint8_t)32 }
+};
+
 Tile16x16p2_t tile16x16p2_invader[2] = {
 	{{
 	//   0123456789012345 
@@ -288,27 +326,46 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 };
 
 Sprite16x16p1 sprites[] = {
-    {&tile16x16p2_invader[0], &pallet1_Green, 50, 50, 1},
-    {&tile16x16p2_invader[0], &pallet1_Green, 66, 50, 1}};
+    {&tile16x16p2_invader[0], &pallet1_Green, 50, 50},
+    {&tile16x16p2_invader[0], &pallet1_Green, 66, 50},
+	
+   {&tile16x16p2_invader[0], &pallet1_Green,   6, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   16, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   26, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   36, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   46, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   56, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   66, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   76, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   86, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   96, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   106, 100},
+   {&tile16x16p2_invader[0], &pallet1_Green,   116, 100},
+};
+
 
 void __not_in_flash_func(core1_main)() {
+_spriteCollisionMasks[0] = (SpriteCollisionMask)1;
+_spriteCollisionMasks[1] = (SpriteCollisionMask)2;
+
 	dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
 	dvi_start(&dvi0);
 	uint32_t frames = 0;
 	while (true) {
+		clear_sprite_collisions();
 		for (uint32_t y = 0; y < FRAME_HEIGHT; ++y) {
 			uint32_t *tmdsbuf;
 			clear_sprite_id_row();
 			queue_remove_blocking(&dvi0.q_tmds_free, &tmdsbuf);
-			uint32_t *dr = tmdsbuf;
-			uint32_t *dg = dr + FRAME_WIDTH;
-			uint32_t *db = dg + FRAME_WIDTH;
+			uint32_t *db = tmdsbuf;
+			uint32_t *dg = db + FRAME_WIDTH;
+			uint32_t *dr = dg + FRAME_WIDTH;
 
 			render_row_mono(
 				dr, dg, db,
 				8, 0, 8);
 
-			for (uint32_t i = 0; i < 2; ++i)
+			for (uint32_t i = 0; i < 14; ++i)
 			{
 				const Sprite16x16p1 *sprite = &sprites[i];
 				const uint32_t r = y - sprite->y;
@@ -320,20 +377,29 @@ void __not_in_flash_func(core1_main)() {
 						dr, dg, db,
 						sprite->x,
 						r,
-						sprite->id);
+						i);
 				}
 			}
 			queue_add_blocking(&dvi0.q_tmds_valid, &tmdsbuf);
 		}
 		++frames;
 
+		// Just messing about - start
 		for (uint32_t i = 0; i < 2; ++i)
 		{
 			Sprite16x16p1 *sprite = &sprites[i];
 			sprite->t = &tile16x16p2_invader[frames >> 2 & 1];
+			if (_spriteCollisions.m[i]) sprite->p = &pallet1_Red;
 		}
-		sprites[0].x++; if (sprites[0].x > FRAME_WIDTH) sprites[0].x = -16; 
-		sprites[1].x--; if (sprites[1].x < -16) sprites[1].x = FRAME_WIDTH + 16; 
+		sprites[0].x++; if (sprites[0].x > FRAME_WIDTH) {
+			sprites[0].x = -16;
+			sprites[0].p = &pallet1_Blue;
+		}
+		sprites[1].x--; if (sprites[1].x < -16) {
+			sprites[1].x = FRAME_WIDTH + 16; 
+			sprites[1].p = &pallet1_Purple;
+		}
+		// Just messing about - end
 	}
 }
 
