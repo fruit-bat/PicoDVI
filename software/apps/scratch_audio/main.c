@@ -17,45 +17,12 @@
 #include "common_dvi_pin_configs.h"
 #include "audio.h"
 
-// Pick one:
 #define MODE_640x480_60Hz
-// #define MODE_800x600_60Hz
-// #define MODE_960x540p_60Hz
-// #define MODE_1280x720_30Hz
-
-#if defined(MODE_640x480_60Hz)
 // DVDD 1.2V (1.1V seems ok too)
 #define FRAME_WIDTH 320
 #define FRAME_HEIGHT 240
 #define VREG_VSEL VREG_VOLTAGE_1_20
 #define DVI_TIMING dvi_timing_640x480p_60hz
-
-#elif defined(MODE_800x600_60Hz)
-// DVDD 1.3V, going downhill with a tailwind
-#define FRAME_WIDTH 800
-#define FRAME_HEIGHT 600
-#define VREG_VSEL VREG_VOLTAGE_1_30
-#define DVI_TIMING dvi_timing_800x600p_60hz
-
-
-#elif defined(MODE_960x540p_60Hz)
-// DVDD 1.25V (slower silicon may need the full 1.3, or just not work)
-#define FRAME_WIDTH 960
-#define FRAME_HEIGHT 540
-#define VREG_VSEL VREG_VOLTAGE_1_25
-#define DVI_TIMING dvi_timing_960x540p_60hz
-
-#elif defined(MODE_1280x720_30Hz)
-// 1280x720p 30 Hz (nonstandard)
-// DVDD 1.25V (slower silicon may need the full 1.3, or just not work)
-#define FRAME_WIDTH 1280
-#define FRAME_HEIGHT 720
-#define VREG_VSEL VREG_VOLTAGE_1_25
-#define DVI_TIMING dvi_timing_1280x720p_30hz
-
-#else
-#error "Select a video mode!"
-#endif
 
 struct dvi_inst dvi0;
 
@@ -100,6 +67,10 @@ typedef struct {
 typedef struct {
 	uint16_t d[16];
 } Tile16x16p2_t;
+
+typedef struct {
+	uint32_t d[16];
+} Tile32x16p2_t;
 
 typedef uint8_t SpriteId;
 typedef uint8_t SpriteCollisionMask;
@@ -159,6 +130,30 @@ void __not_in_flash_func(render_row_mono)(
 	}
 }
 
+static inline void render_sprite_pixel(
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,	
+	const uint32_t fgr,
+	const uint32_t fgg,
+	const uint32_t fgb,
+	const SpriteId spriteId,
+	const uint32_t j
+) {
+	const SpriteId ncid = _spriteIdRow.id[j];
+	if (ncid) {
+		const SpriteId cid = ncid - 1;
+		_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
+		_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
+	}
+	else {
+		dr[j] = fgr;
+		dg[j] = fgg;
+		db[j] = fgb;
+		_spriteIdRow.id[j] = spriteId + 1;
+	}
+}
+
 void __not_in_flash_func(render_Tile16x16p1)(
 	const Tile16x16p2_t * const t,
 	const Pallet1_t * const p,
@@ -182,18 +177,7 @@ void __not_in_flash_func(render_Tile16x16p1)(
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if (d & (1 << 15))
 				{
-					const SpriteId ncid = _spriteIdRow.id[j];
-					if (ncid) {
-						const SpriteId cid = ncid - 1;
-						_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
-						_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
-					}
-					else {
-						dr[j] = fgr;
-						dg[j] = fgg;
-						db[j] = fgb;
-						_spriteIdRow.id[j] = spriteId + 1;
-					}
+					render_sprite_pixel(dr, dg, db, fgr, fgg, fgb, spriteId, j);
 				}
 				d <<= 1;
 			}
@@ -205,18 +189,7 @@ void __not_in_flash_func(render_Tile16x16p1)(
 				const uint32_t j = (uint32_t)tdmsI + i;
 				if ((j < FRAME_WIDTH) && (d & (1 << 15)))
 				{
-					const SpriteId ncid = _spriteIdRow.id[j];
-					if (ncid) {
-						const SpriteId cid = ncid - 1;
-						_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
-						_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
-					}
-					else {
-						dr[j] = fgr;
-						dg[j] = fgg;
-						db[j] = fgb;
-						_spriteIdRow.id[j] = spriteId + 1;
-					}
+					render_sprite_pixel(dr, dg, db, fgr, fgg, fgb, spriteId, j);
 				}
 				d <<= 1;
 			}
@@ -323,6 +296,28 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 		0b0000000000000000,
 		0b0000000000000000,
 	}}	
+};
+
+Tile32x16p2_t tile32x16p2_base[1] = {
+	{{
+	//   0123456789012345 
+		0b00000000011111111111111000000000,
+		0b00000000111111111111111100000000,
+		0b00000001111111111111111110000000,
+		0b00000011111111111111111111000000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111111111111111111100000,
+		0b00000111111100000000111111100000,
+		0b00000111111000000000011111100000,
+		0b00000111110000000000001111100000,
+		0b00000111110000000000001111100000,
+	}}
 };
 
 Sprite16x16p1 sprites[] = {
