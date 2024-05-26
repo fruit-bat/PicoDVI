@@ -24,6 +24,18 @@
 #define VREG_VSEL VREG_VOLTAGE_1_20
 #define DVI_TIMING dvi_timing_640x480p_60hz
 
+//#define AUDIO_RATE 32000
+#define AUDIO_RATE 44100
+//#define AUDIO_RATE 48000
+
+#if (AUDIO_RATE == 32000)
+#define HDMI_N     4096     // From HDMI standard for 32kHz
+#elif (AUDIO_RATE == 44100)
+#define HDMI_N     6272     // From HDMI standard for 44.1kHz
+#else
+#define HDMI_N     6144     // From HDMI standard for 48kHz
+#endif
+
 struct dvi_inst dvi0;
 
 //Audio Related
@@ -93,6 +105,10 @@ typedef void (*SpriteRenderer)(
 	const SpriteId spriteId
 );
 
+enum SpriteFlags {
+  SF_ENABLE = 1
+};
+
 typedef struct Sprite {
 	int32_t x,y;
 	uint32_t w,h,f;
@@ -100,7 +116,35 @@ typedef struct Sprite {
 	SpriteRenderer r;
 } Sprite;
 
-#define MAX_SPRITES (1<<8)
+#define MAX_SPRITES (1<<6)
+
+Sprite _sprites[MAX_SPRITES];
+
+void init_sprites() {
+	for(uint32_t i = 0; i < MAX_SPRITES; ++i) _sprites[i].f = 0;
+}
+
+void init_sprite(
+	int i,
+	int32_t x,
+	int32_t y,
+	uint32_t w,
+	uint32_t h,
+	uint32_t f,
+	void *d1, 
+	void *d2,
+	SpriteRenderer r
+) {
+	Sprite *s = &_sprites[i];
+	s->x = x;
+	s->y = y;
+	s->w = w;
+	s->h = h;
+	s->f = f;
+	s->d1 = d1;
+	s->d2 = d2;
+	s->r = r;
+}
 
 // ----------------------------------------------------------------------------
 // Sprite collisions
@@ -427,15 +471,17 @@ Tile32x16p2_t tile32x16p2_base = {
 	}
 };
 
-Sprite sprites[] = {
-   { 50, 50, 16, 16, 0, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1 },
-   { 66, 50, 16, 16, 0, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1 },
-   { 66, 200, 32, 16, 0, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1 },
-};
+
+void init_game() {
+	_spriteCollisionMasks[0] = (SpriteCollisionMask)1;
+	_spriteCollisionMasks[1] = (SpriteCollisionMask)2;
+	
+	init_sprite(0, 50, 50, 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+	init_sprite(1, 66, 50, 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+	init_sprite(2, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
+}
 
 void __not_in_flash_func(core1_main)() {
-_spriteCollisionMasks[0] = (SpriteCollisionMask)1;
-_spriteCollisionMasks[1] = (SpriteCollisionMask)2;
 
 	dvi_register_irqs_this_core(&dvi0, DMA_IRQ_0);
 	dvi_start(&dvi0);
@@ -450,15 +496,17 @@ _spriteCollisionMasks[1] = (SpriteCollisionMask)2;
 			uint32_t *dg = db + FRAME_WIDTH;
 			uint32_t *dr = dg + FRAME_WIDTH;
 
+			// Render a blank row
+			// TODO optionally render a tiled background
 			render_row_mono(
 				dr, dg, db,
 				8, 0, 8);
 
 			for (uint32_t i = 0; i < 3; ++i)
 			{
-				const Sprite *sprite = &sprites[i];
+				const Sprite *sprite = &_sprites[i];
 				const uint32_t r = y - sprite->y;
-				if (r < 16)
+				if ((sprite-> f & SF_ENABLE) && r < sprite->h)
 				{
 					(sprite->r)(
 						sprite->d1,
@@ -476,17 +524,17 @@ _spriteCollisionMasks[1] = (SpriteCollisionMask)2;
 		// Just messing about - start
 		for (uint32_t i = 0; i < 2; ++i)
 		{
-			Sprite *sprite = &sprites[i];
+			Sprite *sprite = &_sprites[i];
 			sprite->d1 = &tile16x16p2_invader[frames >> 2 & 1];
 			if (_spriteCollisions.m[i]) sprite->d2 = &pallet1_Red;
 		}
-		sprites[0].x++; if (sprites[0].x > FRAME_WIDTH) {
-			sprites[0].x = -16;
-			sprites[0].d2 = &pallet1_Blue;
+		_sprites[0].x++; if (_sprites[0].x > FRAME_WIDTH) {
+			_sprites[0].x = -16;
+			_sprites[0].d2 = &pallet1_Blue;
 		}
-		sprites[1].x--; if (sprites[1].x < -16) {
-			sprites[1].x = FRAME_WIDTH + 16; 
-			sprites[1].d2 = &pallet1_Purple;
+		_sprites[1].x--; if (_sprites[1].x < -16) {
+			_sprites[1].x = FRAME_WIDTH + 16; 
+			_sprites[1].d2 = &pallet1_Purple;
 		}
 		// Just messing about - end
 	}
@@ -510,10 +558,13 @@ int __not_in_flash_func(main)() {
 	dvi_get_blank_settings(&dvi0)->top    = 4 * 0;
 	dvi_get_blank_settings(&dvi0)->bottom = 4 * 0;
 	dvi_audio_sample_buffer_set(&dvi0, audio_buffer, AUDIO_BUFFER_SIZE);
-	dvi_set_audio_freq(&dvi0, 44100, 28000, 6272);
+    dvi_set_audio_freq(&dvi0, AUDIO_RATE, dvi0.timing->bit_clk_khz*HDMI_N/(AUDIO_RATE/100)/128, HDMI_N);
 	add_repeating_timer_ms(-2, audio_timer_callback, NULL, &audio_timer);
 
+	init_sprites();
+	
 	printf("starting...\n");
+	init_game();
 
 	multicore_launch_core1(core1_main);
 
