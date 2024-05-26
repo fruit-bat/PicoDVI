@@ -81,18 +81,15 @@ typedef struct {
 } Tile16x16p2_t;
 
 typedef struct {
+	uint16_t d[8];
+} Tile16x8p2_t;
+
+typedef struct {
 	uint32_t d[16];
 } Tile32x16p2_t;
 
 typedef uint8_t SpriteId;
 typedef uint8_t SpriteCollisionMask;
-
-typedef struct {
-	Tile16x16p2_t *t;
-	Pallet1_t *p;
-	int32_t x;
-	int32_t y;
-} Sprite16x16p1;
 
 typedef void (*SpriteRenderer)(
 	const void* d1,
@@ -216,8 +213,8 @@ static inline void render_sprite_pixel(
 	}
 }
 
-static inline void render_Tile16x16p1(
-	const Tile16x16p2_t * const t,
+static inline void render_row_16_p1(
+	uint32_t d,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
 	uint32_t * const dg,
@@ -226,7 +223,6 @@ static inline void render_Tile16x16p1(
 	const int32_t row,
 	const SpriteId spriteId
 ) {
-	uint32_t d = t->d[row];
 	if (d)
 	{
 		const uint32_t fgr = tmds_table[p->r[0]];
@@ -258,6 +254,52 @@ static inline void render_Tile16x16p1(
 			}
 		}
 	}
+}
+
+static inline void render_Tile16x16p1(
+	const Tile16x16p2_t * const t,
+	const Pallet1_t * const p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	uint32_t d = t->d[row];
+	render_row_16_p1(
+		d,
+		p,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
+}
+
+static inline void render_Tile16x8p1(
+	const Tile16x8p2_t * const t,
+	const Pallet1_t * const p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	uint32_t d = t->d[row];
+	render_row_16_p1(
+		d,
+		p,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
 }
 
 static inline void render_Tile32x16p1(
@@ -302,6 +344,28 @@ static inline void render_Tile32x16p1(
 			}
 		}
 	}
+}
+
+void __not_in_flash_func(sprite_renderer_sprite_16x8_p1)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	render_Tile16x8p1(
+		d1,
+		d2,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row,
+		spriteId
+	);
 }
 
 void __not_in_flash_func(sprite_renderer_sprite_16x16_p1)(
@@ -410,13 +474,9 @@ Pallet1_t pallet1_Purple = {
 	{ (uint8_t)32 }
 };
 
-Tile16x16p2_t tile16x16p2_invader[2] = {
+Tile16x8p2_t tile16x8p2_invader[2] = {
 	{{
 	//   0123456789012345 
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
 		0b0000001111000000,
 		0b0001111111111000,
 		0b0011111111111100,
@@ -425,16 +485,9 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 		0b0000111001110000,
 		0b0001100110011000,
 		0b0000110000110000,
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
 	}},
 	{{
 	//   0123456789012345 
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
 		0b0000001111000000,
 		0b0001111111111000,
 		0b0011111111111100,
@@ -443,9 +496,6 @@ Tile16x16p2_t tile16x16p2_invader[2] = {
 		0b0000111001110000,
 		0b0001100110011000,
 		0b0011000000001100,
-		0b0000000000000000,
-		0b0000000000000000,
-		0b0000000000000000,
 	}}	
 };
 
@@ -479,14 +529,14 @@ void init_game() {
 	_spriteCollisionMasks[2] = (SpriteCollisionMask)8;
 
 	uint32_t si = 0;	
-	init_sprite(si++, 50, 5, 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
-	init_sprite(si++, 66, 9, 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+	init_sprite(si++, 50, 5, 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
+	init_sprite(si++, 66, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
 	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
 
 	inv_index = si;
 	for(uint32_t x = 0; x < 11; ++x) {
 		for(uint32_t y = 0; y < 5; ++y) {
-			init_sprite(si, x << 4, 30 + (y << 4), 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+			init_sprite(si, x << 4, 30 + (y << 4), 16, 8, SF_ENABLE, &tile16x8p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
 			_spriteCollisionMasks[si] = (SpriteCollisionMask)4;
 			si++;
 		}
@@ -537,7 +587,7 @@ void __not_in_flash_func(core1_main)() {
 		for (uint32_t i = 0; i < 2; ++i)
 		{
 			Sprite *sprite = &_sprites[i];
-			sprite->d1 = &tile16x16p2_invader[frames >> 2 & 1];
+			sprite->d1 = &tile16x8p2_invader[frames >> 2 & 1];
 			if (_spriteCollisions.m[i]) sprite->d2 = &pallet1_Red;
 		}
 		_sprites[0].x++; if (_sprites[0].x > FRAME_WIDTH) {
@@ -554,7 +604,7 @@ void __not_in_flash_func(core1_main)() {
 		{
 			Sprite *sprite = &_sprites[i];
 			sprite->x += inv_v;
-			sprite->d1 = &tile16x16p2_invader[frames >> 2 & 1];
+			sprite->d1 = &tile16x8p2_invader[(sprite->x >> 2) & 1];
 			if (inv_v > 0) {
 				if(sprite->x + 16 >= FRAME_WIDTH) reverse = true;
 			}
