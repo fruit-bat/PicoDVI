@@ -476,6 +476,7 @@ static int32_t inv_v = 1;
 void init_game() {
 	_spriteCollisionMasks[0] = (SpriteCollisionMask)1;
 	_spriteCollisionMasks[1] = (SpriteCollisionMask)2;
+	_spriteCollisionMasks[2] = (SpriteCollisionMask)8;
 
 	uint32_t si = 0;	
 	init_sprite(si++, 50, 5, 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
@@ -485,7 +486,9 @@ void init_game() {
 	inv_index = si;
 	for(uint32_t x = 0; x < 11; ++x) {
 		for(uint32_t y = 0; y < 5; ++y) {
-			init_sprite(si++, x << 4, 30 + (y << 4), 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+			init_sprite(si, x << 4, 30 + (y << 4), 16, 16, SF_ENABLE, &tile16x16p2_invader[0], &pallet1_Green, sprite_renderer_sprite_16x16_p1);
+			_spriteCollisionMasks[si] = (SpriteCollisionMask)4;
+			si++;
 		}
 	}
 }
