@@ -199,9 +199,9 @@ static inline void render_sprite_pixel(
 	uint32_t * const dr,
 	uint32_t * const dg,
 	uint32_t * const db,	
-	const uint32_t fgr,
-	const uint32_t fgg,
-	const uint32_t fgb,
+	const uint32_t r,
+	const uint32_t g,
+	const uint32_t b,
 	const SpriteId spriteId,
 	const uint32_t j
 ) {
@@ -212,14 +212,28 @@ static inline void render_sprite_pixel(
 		_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
 	}
 	else {
-		dr[j] = fgr;
-		dg[j] = fgg;
-		db[j] = fgb;
+		dr[j] = r;
+		dg[j] = g;
+		db[j] = b;
 		_spriteIdRow.id[j] = spriteId + 1;
 	}
 }
 
-static inline void render_row_n_p1(
+static inline void render_pixel(
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,	
+	const uint32_t r,
+	const uint32_t g,
+	const uint32_t b,
+	const uint32_t j
+) {
+	dr[j] = r;
+	dg[j] = g;
+	db[j] = b;
+}
+
+static inline void render_sprite_row_n_p1(
 	uint32_t d,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
@@ -263,8 +277,96 @@ static inline void render_row_n_p1(
 	}
 }
 
-static inline void render_row_text_8_p1(
+static inline void render_row_n_p1(
 	uint32_t d,
+	const Pallet1_t * const p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const uint32_t w
+) {
+	if (d)
+	{
+		const uint32_t fgr = tmds_table[p->r[0]];
+		const uint32_t fgg = tmds_table[p->g[0]];
+		const uint32_t fgb = tmds_table[p->b[0]];
+		const uint32_t bm = 1 << (w-1);
+		if (((uint32_t)tdmsI) < (FRAME_WIDTH - w))
+		{
+			for (int32_t i = 0; i < w; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if (d & bm)
+				{
+					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
+				}
+				d <<= 1;
+			}
+		}
+		else
+		{
+			for (int32_t i = 0; i < w; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if ((j < FRAME_WIDTH) && (d & bm))
+				{
+					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
+				}
+				d <<= 1;
+			}
+		}
+	}
+}
+
+static inline void render_row_n_p1_rev(
+	uint32_t d,
+	const Pallet1_t * const p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const uint32_t w
+) {
+	if (d)
+	{
+		const uint32_t fgr = tmds_table[p->r[0]];
+		const uint32_t fgg = tmds_table[p->g[0]];
+		const uint32_t fgb = tmds_table[p->b[0]];
+		const uint32_t bm = 1;
+		if (((uint32_t)tdmsI) < (FRAME_WIDTH - w))
+		{
+			for (int32_t i = 0; i < w; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if (d & bm)
+				{
+					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
+				}
+				d >>= 1;
+			}
+		}
+		else
+		{
+			for (int32_t i = 0; i < w; i++)
+			{
+				const uint32_t j = (uint32_t)tdmsI + i;
+				if ((j < FRAME_WIDTH) && (d & bm))
+				{
+					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
+				}
+				d >>= 1;
+			}
+		}
+	}
+}
+
+
+static inline void render_row_text_8_p1(
+	uint8_t * const s,
+	const uint32_t w,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
 	uint32_t * const dg,
@@ -272,40 +374,18 @@ static inline void render_row_text_8_p1(
 	const int32_t tdmsI,
 	const int32_t row
 ) {
-	if (d)
-	{
-		const uint32_t fgr = tmds_table[p->r[0]];
-		const uint32_t fgg = tmds_table[p->g[0]];
-		const uint32_t fgb = tmds_table[p->b[0]];
-		const uint32_t bm = 1 << 15;
-		if (((uint32_t)tdmsI) < (FRAME_WIDTH - 16))
-		{
-			for (int32_t i = 0; i < 8; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if (d & bm)
-				{
-					dr[j] = fgr;
-					dg[j] = fgg;
-					db[j] = fgb;
-				}
-				d <<= 1;
-			}
-		}
-		else
-		{
-			for (int32_t i = 0; i < 8; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if ((j < FRAME_WIDTH) && (d & bm))
-				{
-					dr[j] = fgr;
-					dg[j] = fgg;
-					db[j] = fgb;
-				}
-				d <<= 1;
-			}
-		}
+	for(uint32_t i = 0; i < w; ++i) {
+		const uint8_t d = font_8x8[__mul_instruction(FONT_N_CHARS, row) + s[i] -  32];
+		render_row_n_p1_rev(
+			d,
+			p,
+			dr,
+			dg,
+			db,
+			tdmsI + (i << 3),
+			row,
+			8
+		);
 	}
 }
 
@@ -320,7 +400,7 @@ static inline void render_Tile16x16p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	render_row_n_p1(
+	render_sprite_row_n_p1(
 		d,
 		p,
 		dr,
@@ -344,7 +424,7 @@ static inline void render_Tile16x8p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	render_row_n_p1(
+	render_sprite_row_n_p1(
 		d,
 		p,
 		dr,
@@ -368,7 +448,7 @@ static inline void render_Tile32x16p1(
 	const SpriteId spriteId
 ) {
 	uint32_t d = t->d[row];
-	render_row_n_p1(
+	render_sprite_row_n_p1(
 		d,
 		p,
 		dr,
@@ -447,6 +527,28 @@ void __not_in_flash_func(sprite_renderer_sprite_32x16_p1)(
 	);
 }
 
+void __not_in_flash_func(text_renderer_8x8_p1)(
+	const void* d1,
+	const void* d2,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row,
+	const SpriteId spriteId
+) {
+	render_row_text_8_p1(
+		(uint8_t *)d1,
+		5,
+		(Pallet1_t *)d2,
+		dr,
+		dg,
+		db,
+		tdmsI,
+		row
+	);
+}
+
 void __not_in_flash_func(render_Tile16x16p2)(
 	Tile16x16p2_t *t,
 	Pallet2_t *p,
@@ -498,15 +600,15 @@ Pallet1_t pallet1_Red = {
 };
 
 Pallet1_t pallet1_Blue = {
-	{ (uint8_t)0 },
-	{ (uint8_t)0 },
+	{ (uint8_t)10 },
+	{ (uint8_t)10 },
 	{ (uint8_t)63 }
 };
 
 Pallet1_t pallet1_Purple = {
-	{ (uint8_t)32 },
+	{ (uint8_t)42 },
 	{ (uint8_t)0 },
-	{ (uint8_t)32 }
+	{ (uint8_t)42 }
 };
 
 Pallet1_t pallet1_White = {
@@ -646,6 +748,8 @@ void init_game() {
 			si++;
 		}
 	}
+	init_sprite(si++, 8, 8, 8*5, 8, SF_ENABLE, "hello", &pallet1_Green, text_renderer_8x8_p1);
+
 }
 
 void __not_in_flash_func(core1_main)() {
