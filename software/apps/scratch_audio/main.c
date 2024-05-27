@@ -677,7 +677,17 @@ Tile16x8p2_t tile16x8p2_invader[] = {
 		0b0000111001110000,
 		0b0001100110011000,
 		0b0011000000001100,
-	}}	
+	}},
+	{{
+		0b0000000000000000,
+		0b0000001111000000,
+		0b0001111111111000,
+		0b0011111111111100,
+		0b0110110110110110,
+		0b1111111111111111,
+		0b0011100110011100,
+		0b0001000000001000,
+	}}
 };
 
 Tile32x16p2_t tile32x16p2_base = {
@@ -726,6 +736,8 @@ void __not_in_flash_func(sprite_renderer_invader_16x8_p1)(
 }
 
 static uint32_t inv_index;
+static uint32_t mot_index;
+
 static int32_t inv_v = 1;
 void init_game() {
 	_spriteCollisionMasks[0] = (SpriteCollisionMask)1;
@@ -733,9 +745,13 @@ void init_game() {
 	_spriteCollisionMasks[2] = (SpriteCollisionMask)8;
 
 	uint32_t si = 0;	
-	init_sprite(si++, 50, 5, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
-	init_sprite(si++, 66, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
+	init_sprite(si++, 50, 15, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
+	init_sprite(si++, 66, 19, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
 	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
+
+	mot_index = si;
+	init_sprite(si++, -1000, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[6], &pallet1_Red, sprite_renderer_sprite_16x8_p1);
+
 
 	inv_index = si;
 	uint32_t rt[5] = {0, 2, 2, 4, 4};
@@ -750,6 +766,11 @@ void init_game() {
 	}
 	init_sprite(si++, 8, 8, 8*5, 8, SF_ENABLE, "hello", &pallet1_Green, text_renderer_8x8_p1);
 
+}
+void __not_in_flash_func(update_mother_ship)() {	
+		Sprite *sprite = &_sprites[mot_index];
+		sprite->x += 2;
+		if(sprite->x > FRAME_WIDTH) sprite->x = -1000;
 }
 
 void __not_in_flash_func(core1_main)() {
@@ -793,6 +814,8 @@ void __not_in_flash_func(core1_main)() {
 		++frames;
 
 		// Just messing about - start
+		update_mother_ship();
+
 		for (uint32_t i = 0; i < 2; ++i)
 		{
 			Sprite *sprite = &_sprites[i];
