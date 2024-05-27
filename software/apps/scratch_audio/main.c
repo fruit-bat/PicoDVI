@@ -17,7 +17,8 @@
 #include "common_dvi_pin_configs.h"
 #include "audio.h"
 
-#include "font_8x8.h"
+#include "font_inv.h"
+
 #define FONT_CHAR_WIDTH 8
 #define FONT_CHAR_HEIGHT 8
 #define FONT_N_CHARS 95
@@ -320,50 +321,6 @@ static inline void render_row_n_p1(
 	}
 }
 
-static inline void render_row_n_p1_rev(
-	uint32_t d,
-	const Pallet1_t * const p,
-	uint32_t * const dr,
-	uint32_t * const dg,
-	uint32_t * const db,
-	const int32_t tdmsI,
-	const int32_t row,
-	const uint32_t w
-) {
-	if (d)
-	{
-		const uint32_t fgr = tmds_table[p->r[0]];
-		const uint32_t fgg = tmds_table[p->g[0]];
-		const uint32_t fgb = tmds_table[p->b[0]];
-		const uint32_t bm = 1;
-		if (((uint32_t)tdmsI) < (FRAME_WIDTH - w))
-		{
-			for (int32_t i = 0; i < w; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if (d & bm)
-				{
-					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
-				}
-				d >>= 1;
-			}
-		}
-		else
-		{
-			for (int32_t i = 0; i < w; i++)
-			{
-				const uint32_t j = (uint32_t)tdmsI + i;
-				if ((j < FRAME_WIDTH) && (d & bm))
-				{
-					render_pixel(dr, dg, db, fgr, fgg, fgb, j);
-				}
-				d >>= 1;
-			}
-		}
-	}
-}
-
-
 static inline void render_row_text_8_p1(
 	uint8_t * const s,
 	const uint32_t w,
@@ -375,8 +332,8 @@ static inline void render_row_text_8_p1(
 	const int32_t row
 ) {
 	for(uint32_t i = 0; i < w; ++i) {
-		const uint8_t d = font_8x8[__mul_instruction(FONT_N_CHARS, row) + s[i] -  32];
-		render_row_n_p1_rev(
+		const uint8_t d = font_8x8[row + ((s[i] -  32) << 3)];
+		render_row_n_p1(
 			d,
 			p,
 			dr,
@@ -872,8 +829,8 @@ int __not_in_flash_func(main)() {
 	hw_set_bits(&bus_ctrl_hw->priority, BUSCTRL_BUS_PRIORITY_PROC1_BITS);
 
 	// HDMI Audio related
-	dvi_get_blank_settings(&dvi0)->top    = 4 * 0;
-	dvi_get_blank_settings(&dvi0)->bottom = 4 * 0;
+	dvi_get_blank_settings(&dvi0)->top    = 0;
+	dvi_get_blank_settings(&dvi0)->bottom = 0;
 	dvi_audio_sample_buffer_set(&dvi0, audio_buffer, AUDIO_BUFFER_SIZE);
     dvi_set_audio_freq(&dvi0, AUDIO_RATE, dvi0.timing->bit_clk_khz*HDMI_N/(AUDIO_RATE/100)/128, HDMI_N);
 	add_repeating_timer_ms(-2, audio_timer_callback, NULL, &audio_timer);
