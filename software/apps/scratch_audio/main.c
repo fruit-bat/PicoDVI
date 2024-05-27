@@ -246,7 +246,6 @@ static inline void render_sprite_row_n_p1(
 	uint32_t * const dg,
 	uint32_t * const db,
 	const int32_t tdmsI,
-	const int32_t row,
 	const SpriteId spriteId,
 	const uint32_t w
 ) {
@@ -369,7 +368,6 @@ static inline void render_Tile16x16p1(
 		dg,
 		db,
 		tdmsI,
-		row,
 		spriteId,
 		16
 	);
@@ -393,7 +391,6 @@ static inline void render_Tile16x8p1(
 		dg,
 		db,
 		tdmsI,
-		row,
 		spriteId,
 		16
 	);
@@ -417,7 +414,6 @@ static inline void render_Tile32x16p1(
 		dg,
 		db,
 		tdmsI,
-		row,
 		spriteId,
 		32
 	);
