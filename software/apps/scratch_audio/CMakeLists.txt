@@ -2,7 +2,7 @@ add_executable(scratch_audio
 	main.c
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
 
 target_compile_definitions(scratch_audio PRIVATE
 	DVI_VERTICAL_REPEAT=2

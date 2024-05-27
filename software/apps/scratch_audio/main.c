@@ -336,7 +336,25 @@ static inline void render_row_text_8_p1(
 	uint8_t * const s = tg->s + __mul_instruction((row >> 3), tg->w);
 	const uint32_t r = row & 7;
 	const uint32_t w = tg->w;
-	for(uint32_t i = 0; i < w; ++i) {
+	const uint32_t v = w >> 2;
+	for(uint32_t i = 0; i < v; ++i) {
+		const uint32_t q = i << 2;
+		const uint8_t d1 = font_8x8[r + ((s[q] -  32) << 3)];
+		const uint8_t d2 = font_8x8[r + ((s[q+1] -  32) << 3)];
+		const uint8_t d3 = font_8x8[r + ((s[q+2] -  32) << 3)];
+		const uint8_t d4 = font_8x8[r + ((s[q+3] -  32) << 3)];
+		const uint32_t g = (((uint32_t)d1) << 24) | (((uint32_t)d2) << 16) | (((uint32_t)d3) << 8) | d4;
+		render_row_n_p1(
+			g,
+			p,
+			dr,
+			dg,
+			db,
+			tdmsI + (i << 5),
+			32
+		);
+	}
+	for(uint32_t i = w & -4; i < w; ++i) {
 		const uint8_t d = font_8x8[r + ((s[i] -  32) << 3)];
 		render_row_n_p1(
 			d,
@@ -702,9 +720,19 @@ void __not_in_flash_func(sprite_renderer_invader_16x8_p1)(
 	);
 }
 
-static uint8_t _text1 [17] = "PLAY    INVADERS";
+static uint8_t _text1 [40*24] = "In Xanadu did Kubla Khan \
+A stately pleasure-dome decree: \
+Where Alph, the sacred river, ran \
+Through caverns measureless to man \
+   Down to a sunless sea. \
+So twice five miles of fertile ground \
+With walls and towers were girdled round; \
+And there were gardens bright with sinuous rills, \
+Where blossomed many an incense-bearing tree; \
+And here were forests ancient as the hills, \
+Enfolding sunny spots of greenery."; 
 static TextGrid8_t _textGrid1 = {
-	8, _text1
+	40, _text1
 };
 
 static uint32_t inv_index;
@@ -736,7 +764,7 @@ void init_game() {
 			si++;
 		}
 	}
-	init_sprite(si++, 8, 8, 8*8, 8*2, SF_ENABLE, &_textGrid1, &pallet1_Green, text_renderer_8x8_p1);
+	init_sprite(si++, 0, 0, 32*8, 24*8, SF_ENABLE, &_textGrid1, &pallet1_Green, text_renderer_8x8_p1);
 
 }
 void __not_in_flash_func(update_mother_ship)() {	
