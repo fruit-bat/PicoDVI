@@ -95,6 +95,11 @@ typedef struct {
 	uint32_t d[16];
 } Tile32x16p2_t;
 
+typedef struct {
+	uint16_t w;
+	uint8_t *s;
+} TextGrid8_t;
+
 typedef uint8_t SpriteId;
 typedef uint8_t SpriteCollisionMask;
 
@@ -285,7 +290,6 @@ static inline void render_row_n_p1(
 	uint32_t * const dg,
 	uint32_t * const db,
 	const int32_t tdmsI,
-	const int32_t row,
 	const uint32_t w
 ) {
 	if (d)
@@ -322,8 +326,7 @@ static inline void render_row_n_p1(
 }
 
 static inline void render_row_text_8_p1(
-	uint8_t * const s,
-	const uint32_t w,
+	const TextGrid8_t *tg,
 	const Pallet1_t * const p,
 	uint32_t * const dr,
 	uint32_t * const dg,
@@ -331,8 +334,11 @@ static inline void render_row_text_8_p1(
 	const int32_t tdmsI,
 	const int32_t row
 ) {
+	uint8_t * const s = tg->s + __mul_instruction((row >> 3), tg->w);
+	const uint32_t r = row & 7;
+	const uint32_t w = tg->w;
 	for(uint32_t i = 0; i < w; ++i) {
-		const uint8_t d = font_8x8[row + ((s[i] -  32) << 3)];
+		const uint8_t d = font_8x8[r + ((s[i] -  32) << 3)];
 		render_row_n_p1(
 			d,
 			p,
@@ -340,7 +346,6 @@ static inline void render_row_text_8_p1(
 			dg,
 			db,
 			tdmsI + (i << 3),
-			row,
 			8
 		);
 	}
@@ -495,8 +500,7 @@ void __not_in_flash_func(text_renderer_8x8_p1)(
 	const SpriteId spriteId
 ) {
 	render_row_text_8_p1(
-		(uint8_t *)d1,
-		5,
+		(TextGrid8_t *)d1,
 		(Pallet1_t *)d2,
 		dr,
 		dg,
@@ -702,6 +706,11 @@ void __not_in_flash_func(sprite_renderer_invader_16x8_p1)(
 	);
 }
 
+static uint8_t _text1 [17] = "PLAY    INVADERS";
+static TextGrid8_t _textGrid1 = {
+	8, _text1
+};
+
 static uint32_t inv_index;
 static uint32_t mot_index;
 static uint32_t gun_index;
@@ -731,7 +740,7 @@ void init_game() {
 			si++;
 		}
 	}
-	init_sprite(si++, 8, 8, 8*5, 8, SF_ENABLE, "hello", &pallet1_Green, text_renderer_8x8_p1);
+	init_sprite(si++, 8, 8, 8*8, 8*2, SF_ENABLE, &_textGrid1, &pallet1_Green, text_renderer_8x8_p1);
 
 }
 void __not_in_flash_func(update_mother_ship)() {	
