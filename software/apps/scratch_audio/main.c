@@ -612,9 +612,9 @@ Pallet1_t pallet1_Purple = {
 };
 
 Pallet1_t pallet1_White = {
-	{ (uint8_t)32 },
-	{ (uint8_t)32 },
-	{ (uint8_t)32 }
+	{ (uint8_t)42 },
+	{ (uint8_t)42 },
+	{ (uint8_t)42 }
 };
 
 Tile16x8p2_t tile16x8p2_invader[] = {
@@ -687,6 +687,16 @@ Tile16x8p2_t tile16x8p2_invader[] = {
 		0b1111111111111111,
 		0b0011100110011100,
 		0b0001000000001000,
+	}},
+	{{
+		0b0000000010000000,
+		0b0000000111000000,
+		0b0000000111000000,
+		0b0000111111111000,
+		0b0011111111111110,
+		0b0011111111111110,
+		0b0011111111111110,
+		0b0011111111111110,
 	}}
 };
 
@@ -737,6 +747,7 @@ void __not_in_flash_func(sprite_renderer_invader_16x8_p1)(
 
 static uint32_t inv_index;
 static uint32_t mot_index;
+static uint32_t gun_index;
 
 static int32_t inv_v = 1;
 void init_game() {
@@ -749,9 +760,8 @@ void init_game() {
 	init_sprite(si++, 66, 19, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_invader_16x8_p1);
 	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1);
 
-	mot_index = si;
-	init_sprite(si++, -1000, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[6], &pallet1_Red, sprite_renderer_sprite_16x8_p1);
-
+	init_sprite(mot_index = si++, -1000, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[6], &pallet1_Red, sprite_renderer_sprite_16x8_p1);
+	init_sprite(gun_index = si++, 20, FRAME_HEIGHT - 24, 16, 8, SF_ENABLE, &tile16x8p2_invader[7], &pallet1_Green, sprite_renderer_sprite_16x8_p1);
 
 	inv_index = si;
 	uint32_t rt[5] = {0, 2, 2, 4, 4};
