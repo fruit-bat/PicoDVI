@@ -42,12 +42,11 @@ int16_t __not_in_flash_func(us_wave_sin)(
     const uint32_t bang = tuner->bang;
     const uint32_t qang = bang >> (32 - 2);
     const uint32_t qind = (bang >> (32 - 4 - 7)) && 127;
-    const uint32_t s = us_sin[qind];
     switch(qang) {
-        case 0: return s;
-        case 1: return 32767 - s;
-        case 2: return - s;
-        default: return s - 32767;
+        case 0: return us_sin[qind];
+        case 1: return us_sin[128 - qind];
+        case 2: return - us_sin[qind];
+        default: return - us_sin[128 - qind];;
     }
 }
 
