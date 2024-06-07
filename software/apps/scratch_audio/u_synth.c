@@ -19,7 +19,7 @@ typedef struct {
     uint32_t bang; // Binary anngle. Complete rotation = 2^32 
 } USTuner;
 
-void us_set_pitch_from_tables(
+void __not_in_flash_func(us_set_pitch_from_tables)(
     USTuner *tuner,
     uint32_t ni
 ){
@@ -28,7 +28,7 @@ void us_set_pitch_from_tables(
 }
 
 // Update for single sample
-void us_tick(
+void __not_in_flash_func(us_tick)(
     USTuner *tuner
 ) {
     const uint32_t eips = (uint32_t)tuner->eips;
