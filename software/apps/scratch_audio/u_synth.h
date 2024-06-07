@@ -23,3 +23,7 @@ void us_set_pitch_from_tables(
     USTuner *tuner,
     uint32_t ni
 );
+
+int16_t us_wave_sin(
+    USTuner *tuner
+);

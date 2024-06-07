@@ -9,8 +9,6 @@ typedef int32_t fix;
 
 #include "u_synth_tone_tables.h"
 
-
-
 void __not_in_flash_func(us_set_pitch_from_tables)(
     USTuner *tuner,
     uint32_t ni
@@ -37,6 +35,23 @@ void us_set_freqency_hz(
     // Assume f/fs < 1
  //   uint64_t t1 = (((uint64_t)fhz) << 32) / ((uint64_t)US_SAMPLE_RATE_HZ);
 }
+
+int16_t __not_in_flash_func(us_wave_sin)(
+    USTuner *tuner
+) {
+    const uint32_t bang = tuner->bang;
+    const uint32_t qang = bang >> (32 - 2);
+    const uint32_t qind = (bang >> (32 - 4 - 7)) && 127;
+    const uint32_t s = us_sin[qind];
+    switch(qang) {
+        case 0: return s;
+        case 1: return 32767 - s;
+        case 2: return - s;
+        default: return s - 32767;
+    }
+}
+
+
 
 
 // This is like a sample but is a combination of a amplitude and a time
@@ -73,13 +88,3 @@ UsWaveDelta wave_form_triangle[] = {
     { dec2fix(0), dec2fix(1.0) },
 };
 
-void us_set_rate(fix hz, UsWaveRate *r) {
-    // Assume we have a 44100 sample rate
-    // A sample is taken every ~22.67us
-
-    // to play a wave a 1Hz
-}
-
-void wave_step() {
-
-}

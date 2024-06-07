@@ -82,4 +82,11 @@ int main(int argc, char**argv) {
     }
     printf("};\n");
 
+    printf("\nconst int16_t us_sin[] = {\n");
+    for (int i = 0; i < 128; ++i) {
+        const double a = M_PI * ((double)i) / 256.0;
+        const int16_t v = (int16_t)(sin(a) * (double)(32767));
+        printf("/* %3d, %1.3lf  */ %d,\n", i, a, v);
+    }
+    printf("};\n");
 }
