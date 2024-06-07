@@ -16,6 +16,7 @@
 #include "dvi_serialiser.h"
 #include "common_dvi_pin_configs.h"
 #include "audio.h"
+#include "u_synth.h"
 
 #include "font_inv.h"
 
@@ -202,22 +203,24 @@ void __not_in_flash_func(render_row_mono)(
 }
 
 static inline void render_sprite_pixel(
-	uint32_t * const dr,
-	uint32_t * const dg,
-	uint32_t * const db,	
+	uint32_t *const dr,
+	uint32_t *const dg,
+	uint32_t *const db,
 	const uint32_t r,
 	const uint32_t g,
 	const uint32_t b,
 	const SpriteId spriteId,
-	const uint32_t j
-) {
+	const uint32_t j)
+{
 	const SpriteId ncid = _spriteIdRow.id[j];
-	if (ncid) {
+	if (ncid)
+	{
 		const SpriteId cid = ncid - 1;
 		_spriteCollisions.m[cid] |= _spriteCollisionMasks[spriteId];
 		_spriteCollisions.m[spriteId] |= _spriteCollisionMasks[cid];
 	}
-	else {
+	else
+	{
 		dr[j] = r;
 		dg[j] = g;
 		db[j] = b;
@@ -768,9 +771,9 @@ void init_game() {
 
 }
 void __not_in_flash_func(update_mother_ship)() {	
-		Sprite *sprite = &_sprites[mot_index];
-		sprite->x += 2;
-		if(sprite->x > FRAME_WIDTH) sprite->x = -1000;
+	Sprite *sprite = &_sprites[mot_index];
+	sprite->x += 2;
+	if(sprite->x > FRAME_WIDTH) sprite->x = -1000;
 }
 
 void __not_in_flash_func(core1_main)() {
