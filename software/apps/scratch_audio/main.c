@@ -15,7 +15,6 @@
 #include "dvi.h"
 #include "dvi_serialiser.h"
 #include "common_dvi_pin_configs.h"
-#include "audio.h"
 #include "u_synth.h"
 
 #include "font_inv.h"
@@ -56,17 +55,20 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 };
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
+	static USTuner tuner;
+	us_set_pitch_from_tables(&tuner, 57);
+
 	while(true) {
 		int size = get_write_size(&dvi0.audio_ring, false);
 		if (size == 0) return true;
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
-		static uint sample_count = 0;
 		for (int cnt = 0; cnt < size; cnt++) {
-			sample.channels[0] = commodore_argentina[sample_count % commodore_argentina_len] << 8;
-			sample.channels[1] = commodore_argentina[(sample_count+1024) % commodore_argentina_len] << 8;
+			us_tick(&tuner);
+			uint32_t s = tuner.bang >> 16;
+			sample.channels[0] = s;
+			sample.channels[1] = s;
 			*audio_ptr++ = sample;
-			sample_count = sample_count + 1;
 		}
 		increase_write_pointer(&dvi0.audio_ring, size);
 	}

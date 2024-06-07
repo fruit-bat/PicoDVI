@@ -9,15 +9,7 @@ typedef int32_t fix;
 
 #include "u_synth_tone_tables.h"
 
-// f  = frequency
-// sf = sample frequency
-// be = binary exponent
-typedef struct {
-    uint32_t fips; // Increment per sample ((2^(32+be))*f/sf)
-    uint8_t eips;  // Binary exponent (number of fractional bits)
-    uint32_t facc; // Fractional accumulator
-    uint32_t bang; // Binary anngle. Complete rotation = 2^32 
-} USTuner;
+
 
 void __not_in_flash_func(us_set_pitch_from_tables)(
     USTuner *tuner,
