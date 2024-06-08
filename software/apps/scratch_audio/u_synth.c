@@ -41,15 +41,28 @@ int16_t __not_in_flash_func(us_wave_sin)(
 ) {
     const uint32_t bang = tuner->bang;
     const uint32_t qang = bang >> (32 - 2);
-    const uint32_t qind = (bang >> (32 - 4 - 7)) && 127;
+    const uint32_t qind = (bang >> (32 - 2 - 7)) && 127;
     switch(qang) {
         case 0: return us_sin[qind];
         case 1: return us_sin[128 - qind];
         case 2: return - us_sin[qind];
-        default: return - us_sin[128 - qind];;
+        default: return - us_sin[128 - qind];
     }
 }
 
+int16_t __not_in_flash_func(us_wave_saw)(
+    USTuner *tuner
+) {
+    const uint32_t bang = tuner->bang;
+    const uint32_t qang = bang >> (32 - 2);
+    const uint32_t qind = (bang >> (32 - 2 - 15)) && 32767;
+    switch(qang) {
+        case 0: return qind;
+        case 1: return 32767 - qind;
+        case 2: return - qind;
+        default: return qind - 32768;
+    }
+}
 
 
 
