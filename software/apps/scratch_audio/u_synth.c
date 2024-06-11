@@ -24,8 +24,25 @@ void __not_in_flash_func(us_tick)(
     const uint32_t eips = (uint32_t)tuner->eips;
     const uint32_t facc = tuner->facc + tuner->fips;
     const uint32_t hacc = facc >> eips;
-    tuner->bang += hacc;
     tuner->facc = facc - (hacc << eips);
+    
+    tuner->bang += hacc;
+}
+
+// Update for single sample return true if wrapped
+int __not_in_flash_func(us_tick_check_wrap)(
+    USTuner *tuner
+) {
+    const uint32_t eips = (uint32_t)tuner->eips;
+    const uint32_t facc = tuner->facc + tuner->fips;
+    const uint32_t hacc = facc >> eips;
+    tuner->facc = facc - (hacc << eips);
+
+    const uint32_t bang_prev = tuner->bang;
+    const uint32_t bang_next = bang_prev + hacc;
+    const bool wrap = bang_next < bang_prev;
+    tuner->bang = bang_next;
+    return wrap;
 }
 
 void us_set_freqency_hz(
