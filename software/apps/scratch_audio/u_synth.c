@@ -17,29 +17,29 @@ void __not_in_flash_func(us_set_pitch_from_tables)(
     tuner->fips = us_bae[ni];
 }
 
-// Update for single sample
-void __not_in_flash_func(us_tick)(
-    USTuner *tuner
+uint32_t inline us_tick_facc(
+   USTuner *tuner
 ) {
     const uint32_t eips = (uint32_t)tuner->eips;
     const uint32_t facc = tuner->facc + tuner->fips;
     const uint32_t hacc = facc >> eips;
     tuner->facc = facc - (hacc << eips);
-    
-    tuner->bang += hacc;
+    return hacc;
+}
+
+// Update for single sample
+void __not_in_flash_func(us_tick)(
+    USTuner *tuner
+) {
+    tuner->bang += us_tick_facc(tuner);
 }
 
 // Update for single sample return true if wrapped
 int __not_in_flash_func(us_tick_check_wrap)(
     USTuner *tuner
 ) {
-    const uint32_t eips = (uint32_t)tuner->eips;
-    const uint32_t facc = tuner->facc + tuner->fips;
-    const uint32_t hacc = facc >> eips;
-    tuner->facc = facc - (hacc << eips);
-
     const uint32_t bang_prev = tuner->bang;
-    const uint32_t bang_next = bang_prev + hacc;
+    const uint32_t bang_next = bang_prev + us_tick_facc(tuner);
     const bool wrap = bang_next < bang_prev;
     tuner->bang = bang_next;
     return wrap;
