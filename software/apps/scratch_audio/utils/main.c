@@ -84,7 +84,7 @@ int main(int argc, char**argv) {
 
     printf("\nconst uint16_t us_sin[] = {\n");
     {
-        const int n = 10;
+        const int n = 7;
         const double max = 32767;
         for (int i = 0; i <= (1 << n); ++i)
         {

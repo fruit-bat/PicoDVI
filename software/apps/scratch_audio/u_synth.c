@@ -71,7 +71,7 @@ inline static int32_t us_lerp_n(
     return s1 + d;
 }
 
-#define US_SIN_SAMPLES_LOG2 10L
+#define US_SIN_SAMPLES_LOG2 7L
 
 inline static int32_t us_wave_sin_sample_q(
     const uint32_t qang,
@@ -96,11 +96,11 @@ inline static int32_t us_wave_sin_sample(
 int32_t __not_in_flash_func(us_wave_sin_lerp)(
     const uint32_t bang
 ) {
-    const uint32_t zang = bang >> (32 - 2 - 7 - 8);
+    const uint32_t zang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2 + 8));
     const uint32_t fang = zang & 255;
     const uint32_t sang1 = zang >> 8;
     const int32_t s1 = us_wave_sin_sample(sang1);
-    const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + 7)) - 1);
+    const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + US_SIN_SAMPLES_LOG2)) - 1);
     const int32_t s2 = us_wave_sin_sample(sang2);
     return us_lerp_n(s1, s2, fang, 8);
 }
