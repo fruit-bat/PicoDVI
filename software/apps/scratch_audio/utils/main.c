@@ -39,8 +39,8 @@ int main(int argc, char**argv) {
     const int sample_frequency = 44100;
     const int bits_per_word = 32;
     const double frequency_A_hz = 440; // Concert pitch A4 440Hz
-    const int first_note_index = -(12*4) - 9; // Concert pitch A4 440Hz
-    const int last_note_index = (12*4)+3;
+    const int first_note_index = -(12*5) - 9; // Concert pitch A4 440Hz
+    const int last_note_index = (12*4)+10;
     const int number_of_notes = last_note_index - first_note_index + 1;
     NoteInfo note_infos[number_of_notes];
     printf("#pragma once\n");
@@ -56,9 +56,9 @@ int main(int argc, char**argv) {
         const unsigned long h = g * pow(2, bits_per_word + j);
         const char *nn = note_name[pmod12(ni)];
         const int osi = ni - 3;
-        const int o = ((osi + (12*5))/ 12);
+        const int o = ((osi + (12*7))/ 12) - 2;
         
-        printf("//  %3d   %d   %5.5s %10.3lfHz  %4d %4d %10.10ld =(%32.32lb << %2d)=%32.32lb\n", i, o, nn, f, k, j, h, (unsigned long)(g * pow(2, bits_per_word)), j, h);
+        printf("//  %3d %3d   %5.5s %10.3lfHz  %4d %4d %10.10ld =(%32.32lb << %2d)=%32.32lb\n", i, o, nn, f, k, j, h, (unsigned long)(g * pow(2, bits_per_word)), j, h);
 
         NoteInfo *note_info = &note_infos[i];
         note_info->bae = j;
