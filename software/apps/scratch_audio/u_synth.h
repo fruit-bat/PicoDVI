@@ -13,21 +13,49 @@ typedef struct {
     uint8_t eips;  // Negative binary exponent of fips (-be)
     uint32_t facc; // Fractional accumulator
     uint32_t bang; // Binary anngle. Complete rotation = 2^32 
-} USTuner;
+} UsTuner;
 
 void us_tick(
-    USTuner *tuner
+    UsTuner *tuner
+);
+
+bool us_tick_check_wrap(
+    UsTuner *tuner
 );
 
 void us_set_pitch_from_tables(
-    USTuner *tuner,
+    UsTuner *tuner,
     uint32_t ni
 );
 
 int16_t us_wave_sin(
-    USTuner *tuner
+    const uint32_t bang
+);
+
+int16_t __not_in_flash_func(us_wave_sin_lerp)(
+    const uint32_t bang
 );
 
 int16_t us_wave_saw(
-    USTuner *tuner
+    const uint32_t bang
 );
+
+typedef int16_t (*UsBangToWave)(
+    const uint32_t bang
+);
+
+typedef struct {
+    UsBangToWave bangToWave;
+    UsTuner *tuner;
+} UsWave;
+
+typedef struct {
+    UsWave attack;    // Attack
+    UsWave decay;     // Decay
+    UsWave release;   // Release
+    uint16_t sustain; // gain
+    uint8_t stage;    // stage
+} UsEnvelope;
+
+
+
