@@ -71,7 +71,7 @@ inline static int32_t us_lerp_n(
     return s1 + d;
 }
 
-inline static int16_t us_wave_sin_sample_q(
+inline static int32_t us_wave_sin_sample_q(
     const uint32_t qang,
     const uint32_t qind
 ) {
@@ -83,15 +83,15 @@ inline static int16_t us_wave_sin_sample_q(
     }
 }
 
-inline static int16_t us_wave_sin_sample(
+inline static int32_t us_wave_sin_sample(
     const uint32_t sang
 ) {
-    const uint32_t qang = sang >> 7;
-    const uint32_t qind = sang & 127;
+    const uint32_t qind = sang >> 7;
+    const uint32_t qang = sang & 127;
     return us_wave_sin_sample_q(qang, qind);
 }
 
-int16_t __not_in_flash_func(us_wave_sin_lerp)(
+int32_t __not_in_flash_func(us_wave_sin_lerp)(
     const uint32_t bang
 ) {
     const uint32_t zang = bang >> (32 - 2 - 7 - 8);
@@ -100,25 +100,17 @@ int16_t __not_in_flash_func(us_wave_sin_lerp)(
     const int32_t s1 = us_wave_sin_sample(sang1);
     const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + 7)) - 1);
     const int32_t s2 = us_wave_sin_sample(sang2);
-    return (int16_t)us_lerp_n(s1, s2, fang, 8);
+    return us_lerp_n(s1, s2, fang, 8);
 }
 
-int16_t __not_in_flash_func(us_wave_sin)(
+int32_t __not_in_flash_func(us_wave_sin)(
     const uint32_t bang
 ) {
-    //const uint32_t sang = bang >> (32 - 2 - 7);
-    //return (int16_t)us_wave_sin_sample(sang);
-    const uint32_t qind = bang >> (32 - 2);
-    const uint32_t qang = (bang >> (32 - 2 - 7)) & 127;
-    switch(qang) {
-        case 0: return us_sin[qind];
-        case 1: return us_sin[128 - qind];
-        case 2: return - us_sin[qind];
-        default: return - us_sin[128 - qind];
-    } 
+    const uint32_t sang = bang >> (32 - 2 - 7);
+    return us_wave_sin_sample(sang);
 }
 
-int16_t __not_in_flash_func(us_wave_saw)(
+int32_t __not_in_flash_func(us_wave_saw)(
     const uint32_t bang
 ) {
     const uint32_t qang = bang >> (32 - 2);
@@ -129,6 +121,13 @@ int16_t __not_in_flash_func(us_wave_saw)(
         case 2: return - qind;
         default: return qind - 32768;
     }
+}
+
+int32_t __not_in_flash_func(us_wave_square)(
+    const uint32_t bang
+) {
+    const uint32_t qang = bang >> (32 - 1);
+    return qang ? 32767 : - 32768;
 }
 
 int16_t __not_in_flash_func(us_tick_envelope)(

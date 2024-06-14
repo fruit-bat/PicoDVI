@@ -65,7 +65,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
 			us_tick(&tuner);
-			int16_t s = us_wave_sin(tuner.bang) >> 2;
+			int16_t s = us_wave_square(tuner.bang) >> 2;
 			sample.channels[0] = s;
 			sample.channels[1] = s;
 			*audio_ptr++ = sample;

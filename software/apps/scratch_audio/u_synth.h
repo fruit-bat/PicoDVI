@@ -28,15 +28,19 @@ void us_set_pitch_from_tables(
     uint32_t ni
 );
 
-int16_t us_wave_sin(
+int32_t us_wave_sin(
     const uint32_t bang
 );
 
-int16_t __not_in_flash_func(us_wave_sin_lerp)(
+int32_t us_wave_sin_lerp(
     const uint32_t bang
 );
 
-int16_t us_wave_saw(
+int32_t us_wave_saw(
+    const uint32_t bang
+);
+
+int32_t us_wave_square(
     const uint32_t bang
 );
 
