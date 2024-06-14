@@ -71,23 +71,25 @@ inline static int32_t us_lerp_n(
     return s1 + d;
 }
 
+#define US_SIN_SAMPLES_LOG2 10L
+
 inline static int32_t us_wave_sin_sample_q(
     const uint32_t qang,
     const uint32_t qind
 ) {
     switch(qang) {
         case 0: return us_sin[qind];
-        case 1: return us_sin[128 - qind];
+        case 1: return us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
         case 2: return - us_sin[qind];
-        default: return - us_sin[128 - qind];
+        default: return - us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
     }
 }
 
 inline static int32_t us_wave_sin_sample(
     const uint32_t sang
 ) {
-    const uint32_t qind = sang >> 7;
-    const uint32_t qang = sang & 127;
+    const uint32_t qang = sang >> US_SIN_SAMPLES_LOG2;
+    const uint32_t qind = sang & ((1L << US_SIN_SAMPLES_LOG2) - 1L);
     return us_wave_sin_sample_q(qang, qind);
 }
 
@@ -106,7 +108,7 @@ int32_t __not_in_flash_func(us_wave_sin_lerp)(
 int32_t __not_in_flash_func(us_wave_sin)(
     const uint32_t bang
 ) {
-    const uint32_t sang = bang >> (32 - 2 - 7);
+    const uint32_t sang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2));
     return us_wave_sin_sample(sang);
 }
 
