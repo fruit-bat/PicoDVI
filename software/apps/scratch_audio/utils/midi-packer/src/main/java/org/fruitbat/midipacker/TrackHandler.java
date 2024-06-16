@@ -68,7 +68,7 @@ public class TrackHandler {
 					// See https://www.recordingblogs.com/wiki/midi-set-tempo-meta-message
 					final byte[] d = mm.getData();
 					final int u = ((d[0] & 0xff) << 16) + ((d[1] & 0xff) << 8) + (d[2] & 0xff);
-					System.out.println("Tempo: " + u);
+					//System.out.println("Tempo: " + u);
 					_tempoHandler.setTempo(u);
 				}
 			}

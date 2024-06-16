@@ -13,8 +13,9 @@ class TrackTempo implements TempoHandler {
 	final double stepPeriod;
 	double ticksPerStep;
 	long stepsPerTick;
+	private final SynWriter _writer;
 
-	public TrackTempo(final Sequence sequence) {
+	public TrackTempo(final Sequence sequence, final SynWriter writer) {
 		division = sequence.getDivisionType();
 		ppq = sequence.getResolution();
 		trackLengthTicks = sequence.getTickLength(); // Is this ppq?
@@ -23,6 +24,7 @@ class TrackTempo implements TempoHandler {
 		tickSeconds = 48 / (bpm * ppq);
 		ticksPerStep = 1d / (tickSeconds * stepFrequency);
 		stepsPerTick = (long)(tickSeconds * stepFrequency);
+		_writer = writer;
 	}
 
 	@Override
@@ -32,6 +34,7 @@ class TrackTempo implements TempoHandler {
 		tickSeconds = u / (1000000d * ppq);
 		ticksPerStep = 1d / (tickSeconds * stepFrequency);
 		stepsPerTick = (long)(tickSeconds * stepFrequency);
+		_writer.writeTempo(u);
 	}
 
 	public long stepsPerTick() {

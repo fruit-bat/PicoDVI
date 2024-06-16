@@ -1,24 +1,24 @@
 package org.fruitbat.midipacker;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 public class MidiPacker implements Syn {
 
     private final LinkedList<Voice> _voicesOn = new LinkedList<>();
     private final LinkedList<Voice> _voicesOff = new LinkedList<>();
     private final int _voiceCount = 8;
+    private final SynWriter _writer;
 
     private int _maxVoiceOnCount = 0;
 	private final char[] _keys = new char[128];
 
-    public MidiPacker() {
+    public MidiPacker(SynWriter writer) {
         for(int i = 0; i < _keys.length; ++i) _keys[i] = '-';
         for(int i = 0 ; i < _voiceCount; ++i) {
-            _voicesOff.add( new Voice(i));
+            _voicesOff.addFirst( new Voice(i));
         }
+        _writer = writer;
     }
 
     public int maxVoiceOnCount() {
@@ -29,6 +29,7 @@ public class MidiPacker implements Syn {
         if (_voicesOff.size() < 1) throw new RuntimeException("Too few voices");
         final Voice voice = _voicesOff.removeLast();
         voice.on(track, channel, key);
+        _writer.writeVoiceOn(voice.index(), key, velocity);
         _keys[key] = (char)('0' + voice.index());
         _voicesOn.add(voice);
         final int voiceOnCount = _voicesOn.size();
@@ -42,6 +43,7 @@ public class MidiPacker implements Syn {
                 it.remove();
                 _keys[key] = '-';
                 _voicesOff.addFirst(voice);
+                _writer.writeVoiceOff(voice.index(), velocity);
                 break;
             }
         }
