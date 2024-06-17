@@ -66,8 +66,19 @@ int main(int argc, char**argv) {
         note_info->frequency = f;
         note_info->octave = o;
         note_info->note_name = nn;
-
     }
+    {
+        // Calculate values for a timer for microseconds (us) per sample
+        const double f = pow(10, 6);
+        const double g = f / sample_frequency;
+        const int b = (int)(log(g)/log(2));
+        // We add 1 as we actually only want to use 16 of the bits so we can multiply by PPQ
+        const int j = 16 - b - 1;
+        const unsigned long h = g * pow(2, j);
+        printf("#define US_US_PER_SAMPLE_BITS %ld\n", h);
+        printf("#define US_US_PER_SAMPLE_NEXP %d\n", j);
+    }
+
     printf("\nconst uint8_t us_bas[] = {\n");
     for (int i = 0; i < number_of_notes; ++i) {
         const NoteInfo *note_info = &note_infos[i];
