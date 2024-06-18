@@ -1,7 +1,9 @@
 add_executable(scratch_audio
 	main.c
+	us_tuner.c
+	us_voice.c
+	us_pm.c
 	u_synth.c
-	u_packed_midi.c
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")

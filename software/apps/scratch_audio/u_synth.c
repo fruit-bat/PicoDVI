@@ -18,41 +18,6 @@ void __not_in_flash_func(us_set_pitch_from_tables)(
     tuner->fips = us_bae[ni];
 }
 
-uint32_t inline us_tick_facc(
-   UsTuner *tuner
-) {
-    const uint32_t eips = (uint32_t)tuner->eips;
-    const uint32_t facc = tuner->facc + tuner->fips;
-    const uint32_t hacc = facc >> eips;
-    tuner->facc = facc - (hacc << eips);
-    return hacc;
-}
-
-inline void us_tuner_reset(
-    UsTuner *tuner
-) {
-    tuner->facc = 0;
-    tuner->bang = 0;
-}
-
-// Update for single sample
-void __not_in_flash_func(us_tick)(
-    UsTuner *tuner
-) {
-    tuner->bang += us_tick_facc(tuner);
-}
-
-// Update for single sample return true if wrapped
-bool __not_in_flash_func(us_tick_check_wrap)(
-    UsTuner *tuner
-) {
-    const uint32_t bang_prev = tuner->bang;
-    const uint32_t bang_next = bang_prev + us_tick_facc(tuner);
-    const bool wrap = bang_next < bang_prev;
-    tuner->bang = bang_next;
-    return wrap;
-}
-
 void us_set_freqency_hz(
     UsTuner *tuner,
     uint32_t fhz
@@ -132,14 +97,14 @@ int32_t __not_in_flash_func(us_wave_square)(
     return qang ? 32767 : - 32768;
 }
 
-int16_t __not_in_flash_func(us_tick_envelope)(
+int16_t __not_in_flash_func(us_rotate_envelope)(
     UsEnvelope *envelope
 ) {
     switch(envelope->stage) {
         // Attack
         case 0: {
             uint32_t bang;
-            if (us_tick_check_wrap(envelope->attack.tuner)) {
+            if (us_tuner_rotate_check_wrap(envelope->attack.tuner)) {
                 bang = US_BANG_MAX;
                 envelope->stage = 1;
             }
@@ -152,7 +117,7 @@ int16_t __not_in_flash_func(us_tick_envelope)(
         }
         // Decay
         case 1: {
-            if (us_tick_check_wrap(envelope->decay.tuner)) {
+            if (us_tuner_rotate_check_wrap(envelope->decay.tuner)) {
                 us_tuner_reset(envelope->decay.tuner);
                 const int16_t v = envelope->decay.bangToWave(US_BANG_MAX);
                 envelope->stage = 2;
@@ -169,7 +134,7 @@ int16_t __not_in_flash_func(us_tick_envelope)(
         }
         // Release
         case 3: {
-            if (us_tick_check_wrap(envelope->decay.tuner)) {
+            if (us_tuner_rotate_check_wrap(envelope->decay.tuner)) {
                 us_tuner_reset(envelope->decay.tuner);
                 const int16_t v = envelope->decay.bangToWave(US_BANG_MAX);
                 envelope->stage = 2;
