@@ -66,13 +66,16 @@ typedef struct {
     uint32_t tempo;     // Micro seconds per quarter beat (us)
     UsPmCursor cursor;  // Cursor into packed midi file
     int32_t ticks;      // Ticks to wait
-    UsVoices *voices;    // Something to play music on
+    UsVoices *voices;   // Something to play music on
+    UsPmCursor sequence;// Start of the packed midi file
+    bool repeat;        // Play over an over
 } UsPmSequencer;
 
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
     UsVoices *voices,
-    UsPmCursor cursor
+    UsPmCursor sequence,
+    bool repeat
 );
 
 void us_pm_sequencer_update(

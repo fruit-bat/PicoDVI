@@ -76,8 +76,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             break;
         }
         default: {
-
-            cursor = NULL;
+            cursor = sequencer->repeat ? sequencer->sequence :  NULL;
             break;
         }
         break;
@@ -90,15 +89,18 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
     UsVoices *voices,
-    UsPmCursor cursor
+    UsPmCursor sequence,
+    bool repeat
 ) {
     us_tuner_reset(&sequencer->clock);
     us_pm_set_ppq(sequencer, 384L);
     sequencer->clock.eips = US_US_PER_SAMPLE_NEXP;
     sequencer->tempo = 600000L;
-    sequencer->cursor = cursor;
+    sequencer->cursor = sequence;
+    sequencer->sequence = sequence;
     sequencer->ticks = 0;
     sequencer->voices = voices;
+    sequencer->repeat = repeat;
 }
 
 // Called every sample

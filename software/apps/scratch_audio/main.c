@@ -64,8 +64,8 @@ static UsVoices voices;
 static UsPmSequencer sequencer;
 
 void setup_synth() {
-	us_voices_init(&voices, us_wave_sin_lerp);
-	us_pm_sequencer_init(&sequencer, &voices, syn_notes);
+	us_voices_init(&voices, us_wave_saw /* us_wave_sin_lerp */);
+	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
 }
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
