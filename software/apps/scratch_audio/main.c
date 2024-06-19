@@ -15,8 +15,13 @@
 #include "dvi.h"
 #include "dvi_serialiser.h"
 #include "common_dvi_pin_configs.h"
+
+// Music stuff
 #include "u_synth.h"
 #include "us_voices.h"
+#include "us_pm.h"
+#include "bach_packed_midi_1.h"
+// End music stuff
 
 #include "font_inv.h"
 
@@ -56,15 +61,14 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 };
 
 static UsVoices voices;
+static UsPmSequencer sequencer;
 
 void setup_synth() {
 	us_voices_init(&voices, us_wave_sin_lerp);
-	us_voice_note_on(&voices.voice[0], 69, 256);
-	us_voice_note_on(&voices.voice[1], 75, 256);
+	us_pm_sequencer_init(&sequencer, &voices, syn_notes);
 }
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
-
 
 	while(true) {
 		int size = get_write_size(&dvi0.audio_ring, false);
@@ -72,6 +76,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
+			us_pm_sequencer_update(&sequencer);
 			int16_t s = (int16_t)us_voices_update(&voices);
 			sample.channels[0] = s;
 			sample.channels[1] = s;

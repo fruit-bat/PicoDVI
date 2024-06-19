@@ -2,8 +2,8 @@
 //
 // MicroSynth PackedMidi 
 //
-#include "pico/stdlib.h"
 #include "us_tuner.h"
+#include "us_voices.h"
 
 enum UsPmCommands {
     SynCmdPPQ = 0,
@@ -24,7 +24,7 @@ enum UsPmCommandLen {
 };
 
 typedef uint8_t * UsPmCursor;
-
+/*
 typedef struct {
     uint8_t voice;
     uint8_t key;
@@ -60,10 +60,21 @@ typedef struct {
     } data;
     
 } UsPmMessage;
-
+*/
 typedef struct {
     UsTuner clock;      // Runs as micro seconds * parts per quater beat (us*PPQ)
     uint32_t tempo;     // Micro seconds per quarter beat (us)
     UsPmCursor cursor;  // Cursor into packed midi file
     int32_t ticks;      // Ticks to wait
+    UsVoices *voices;    // Something to play music on
 } UsPmSequencer;
+
+void us_pm_sequencer_init(
+    UsPmSequencer *sequencer,
+    UsVoices *voices,
+    UsPmCursor cursor
+);
+
+void us_pm_sequencer_update(
+    UsPmSequencer *sequencer
+);

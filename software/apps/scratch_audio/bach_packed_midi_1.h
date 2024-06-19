@@ -1,6 +1,6 @@
 
 
-unsigned char syn_notes[] = {
+uint8_t syn_notes[] = {
   0x00, 0x01, 0x80,  // PPQ 384
   0x01, 0x08, 0xB8, 0x1C,  // Tempo 571420 us per quater beat
   0x02, 0x00, 0x4C, 0x5C, // Voice on 0, key 76, velocity 92
