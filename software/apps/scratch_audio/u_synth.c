@@ -10,14 +10,6 @@ typedef int32_t fix;
 
 #include "u_synth_tone_tables.h"
 
-void __not_in_flash_func(us_set_pitch_from_tables)(
-    UsTuner *tuner,
-    uint32_t ni
-){
-    tuner->eips = us_bas[ni];
-    tuner->fips = us_bae[ni];
-}
-
 void us_set_freqency_hz(
     UsTuner *tuner,
     uint32_t fhz

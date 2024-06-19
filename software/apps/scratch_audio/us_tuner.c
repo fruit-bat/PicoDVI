@@ -1,4 +1,13 @@
 #include "us_tuner.h"
+#include "us_tuner_notes.h"
+
+void __not_in_flash_func(us_tuner_set_note)(
+    UsTuner *tuner,
+    uint32_t ni
+){
+    tuner->eips = us_bas[ni];
+    tuner->fips = us_bae[ni];
+}
 
 uint32_t inline us_rotate_facc(
    UsTuner *tuner

@@ -9,3 +9,11 @@ void us_voice_update(UsVoice* voice) {
         voice->out = __mul_instruction(voice->wave_func(voice->tuner.bang), voice->gain) >> 8;
     }
 }
+
+void us_voice_note_on(UsVoice* voice, uint8_t note, uint8_t velocity) {
+    
+}
+
+void us_voice_note_off(UsVoice* voice, uint8_t velocity) {
+
+}

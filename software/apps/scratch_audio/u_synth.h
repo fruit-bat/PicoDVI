@@ -2,11 +2,6 @@
 #include "pico/stdlib.h"
 #include "us_tuner.h"
 
-void us_set_pitch_from_tables(
-    UsTuner *tuner,
-    uint32_t ni
-);
-
 int32_t us_wave_sin(
     const uint32_t bang
 );

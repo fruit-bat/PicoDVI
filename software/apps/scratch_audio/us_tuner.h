@@ -25,3 +25,8 @@ void us_tuner_rotate(
 bool us_tuner_rotate_check_wrap(
     UsTuner *tuner
 );
+
+void us_tuner_set_note(
+    UsTuner *tuner,
+    uint32_t note
+);
