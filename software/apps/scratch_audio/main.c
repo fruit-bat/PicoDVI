@@ -16,7 +16,7 @@
 #include "dvi_serialiser.h"
 #include "common_dvi_pin_configs.h"
 #include "u_synth.h"
-#include "us_voice.h"
+#include "us_voices.h"
 
 #include "font_inv.h"
 
@@ -55,12 +55,12 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-static UsVoice voice;
+static UsVoices voices;
 
 void setup_synth() {
-	us_voice_init(&voice);
-	voice.wave_func = us_wave_sin_lerp;
-	us_voice_note_on(&voice, 69, 256);
+	us_voices_init(&voices, us_wave_sin_lerp);
+	us_voice_note_on(&voices.voice[0], 69, 256);
+	us_voice_note_on(&voices.voice[1], 75, 256);
 }
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
@@ -72,8 +72,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
-			us_voice_update(&voice);
-			int16_t s = voice.out;
+			int16_t s = (int16_t)us_voices_update(&voices);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
 			*audio_ptr++ = sample;

@@ -2,6 +2,7 @@ add_executable(scratch_audio
 	main.c
 	us_tuner.c
 	us_voice.c
+	us_voices.c
 	us_pm.c
 	u_synth.c
 )
