@@ -11,9 +11,13 @@ void us_voice_update(UsVoice* voice) {
 }
 
 void us_voice_note_on(UsVoice* voice, uint8_t note, uint8_t velocity) {
-    
+    // Just a hack so we can hear something
+    us_tuner_reset(&voice->tuner); // Set the phase to 0
+    us_tuner_set_note(&voice->tuner, note);
+    voice->gain = velocity;
 }
 
 void us_voice_note_off(UsVoice* voice, uint8_t velocity) {
-
+    // Just a hack so we can hear something
+    voice->gain = 0;
 }
