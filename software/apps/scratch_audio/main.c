@@ -16,6 +16,7 @@
 #include "dvi_serialiser.h"
 #include "common_dvi_pin_configs.h"
 #include "u_synth.h"
+#include "us_voice.h"
 
 #include "font_inv.h"
 
@@ -54,9 +55,16 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
+static UsVoice voice;
+
+void setup_synth() {
+	us_voice_init(&voice);
+	voice.wave_func = us_wave_sin_lerp;
+	us_voice_note_on(&voice, 69, 256);
+}
+
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
-	static UsTuner tuner;
-	us_tuner_set_note(&tuner, 69);
+
 
 	while(true) {
 		int size = get_write_size(&dvi0.audio_ring, false);
@@ -64,8 +72,8 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
-			us_tuner_rotate(&tuner);
-			int16_t s = us_wave_sin_lerp(tuner.bang) >> 2;
+			us_voice_update(&voice);
+			int16_t s = voice.out;
 			sample.channels[0] = s;
 			sample.channels[1] = s;
 			*audio_ptr++ = sample;
@@ -865,6 +873,8 @@ int __not_in_flash_func(main)() {
 	dvi_init(&dvi0, next_striped_spin_lock_num(), next_striped_spin_lock_num());
 
 	hw_set_bits(&bus_ctrl_hw->priority, BUSCTRL_BUS_PRIORITY_PROC1_BITS);
+
+	setup_synth();
 
 	// HDMI Audio related
 	dvi_get_blank_settings(&dvi0)->top    = 0;

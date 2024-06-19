@@ -19,6 +19,6 @@ inline void us_voice_init(UsVoice* voice) {
 
 void us_voice_update(UsVoice* voice);
 
-void us_voice_note_on(UsVoice* voice, uint8_t note, uint8_t velocity);
+void us_voice_note_on(UsVoice* voice, uint32_t note, uint32_t velocity);
 
-void us_voice_note_off(UsVoice* voice, uint8_t velocity);
+void us_voice_note_off(UsVoice* voice, uint32_t velocity);
