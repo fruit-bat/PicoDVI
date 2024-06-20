@@ -39,7 +39,7 @@ public class Main {
 		) {
 			final Syn prsyn = new PrSyn();
 			final SynWriter writer = new SynWriter1(new PrintStream(bos));
-			final MidiPacker packer = new MidiPacker(writer);
+			final MidiPacker packer = new MidiPacker(writer, 16);
 
 			final Syn syn = new CompSyn(new Syn[] { packer });
 

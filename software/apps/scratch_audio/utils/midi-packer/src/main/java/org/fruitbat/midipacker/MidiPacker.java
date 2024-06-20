@@ -7,13 +7,14 @@ public class MidiPacker implements Syn {
 
     private final LinkedList<Voice> _voicesOn = new LinkedList<>();
     private final LinkedList<Voice> _voicesOff = new LinkedList<>();
-    private final int _voiceCount = 8;
+    private final int _voiceCount;
     private final SynWriter _writer;
 
     private int _maxVoiceOnCount = 0;
 	private final char[] _keys = new char[128];
 
-    public MidiPacker(SynWriter writer) {
+    public MidiPacker(SynWriter writer, final int voiceCount) {
+        _voiceCount = voiceCount;
         for(int i = 0; i < _keys.length; ++i) _keys[i] = '-';
         for(int i = 0 ; i < _voiceCount; ++i) {
             _voicesOff.addFirst( new Voice(i));

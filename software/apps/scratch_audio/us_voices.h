@@ -1,7 +1,7 @@
 #pragma once
 #include "us_voice.h"
 
-#define US_VOICE_COUNT_LOG2 3L
+#define US_VOICE_COUNT_LOG2 4L
 #define US_VOICE_COUNT (1 << US_VOICE_COUNT_LOG2)
 
 typedef struct {
