@@ -1,9 +1,5 @@
 #pragma once
-#include "us_tuner.h"
-
-typedef int32_t (*UsWaveFunc)(
-    const uint32_t bang
-);
+#include "us_wave.h"
 
 typedef struct {
     UsTuner tuner;        // TODO Maybe too specific

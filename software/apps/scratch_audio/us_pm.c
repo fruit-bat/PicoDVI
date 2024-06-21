@@ -92,7 +92,7 @@ void us_pm_sequencer_init(
     UsPmCursor sequence,
     bool repeat
 ) {
-    us_tuner_reset(&sequencer->clock);
+    us_tuner_reset_phase(&sequencer->clock);
     us_pm_set_ppq(sequencer, 384L);
     sequencer->clock.eips = US_US_PER_SAMPLE_NEXP;
     sequencer->tempo = 600000L;

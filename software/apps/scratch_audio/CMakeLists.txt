@@ -1,6 +1,9 @@
 add_executable(scratch_audio
 	main.c
+	us_pitch.c
 	us_tuner.c
+	us_wave.c
+	us_adsr.c
 	us_voice.c
 	us_voices.c
 	us_pm.c

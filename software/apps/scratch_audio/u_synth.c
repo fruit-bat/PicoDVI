@@ -8,7 +8,6 @@ typedef int32_t fix;
 #define US_SAMPLE_RATE_HZ 44100
 #define US_BANG_MAX ((uint32_t)-1l)
 
-#include "u_synth_tone_tables.h"
 
 void us_set_freqency_hz(
     UsTuner *tuner,
@@ -16,128 +15,6 @@ void us_set_freqency_hz(
 ) {
     // Assume f/fs < 1
  //   uint64_t t1 = (((uint64_t)fhz) << 32) / ((uint64_t)US_SAMPLE_RATE_HZ);
-}
-
-inline static int32_t us_lerp_n(
-    const int32_t s1,           // Sample 1
-    const int32_t s2,           // Sample 2
-    const uint32_t n_bit_frac,  // n bits of fraction
-    const uint32_t n            // number of fraction bits
-) {
-    const int32_t d = __mul_instruction(s2 - s1, n_bit_frac) >> n;
-    return s1 + d;
-}
-
-#define US_SIN_SAMPLES_LOG2 7L
-
-inline static int32_t us_wave_sin_sample_q(
-    const uint32_t qang,
-    const uint32_t qind
-) {
-    switch(qang) {
-        case 0: return us_sin[qind];
-        case 1: return us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
-        case 2: return - us_sin[qind];
-        default: return - us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
-    }
-}
-
-inline static int32_t us_wave_sin_sample(
-    const uint32_t sang
-) {
-    const uint32_t qang = sang >> US_SIN_SAMPLES_LOG2;
-    const uint32_t qind = sang & ((1L << US_SIN_SAMPLES_LOG2) - 1L);
-    return us_wave_sin_sample_q(qang, qind);
-}
-
-int32_t __not_in_flash_func(us_wave_sin_lerp)(
-    const uint32_t bang
-) {
-    const uint32_t zang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2 + 8));
-    const uint32_t fang = zang & 255;
-    const uint32_t sang1 = zang >> 8;
-    const int32_t s1 = us_wave_sin_sample(sang1);
-    const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + US_SIN_SAMPLES_LOG2)) - 1);
-    const int32_t s2 = us_wave_sin_sample(sang2);
-    return us_lerp_n(s1, s2, fang, 8);
-}
-
-int32_t __not_in_flash_func(us_wave_sin)(
-    const uint32_t bang
-) {
-    const uint32_t sang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2));
-    return us_wave_sin_sample(sang);
-}
-
-int32_t __not_in_flash_func(us_wave_saw)(
-    const uint32_t bang
-) {
-    const uint32_t qang = bang >> (32 - 2);
-    const uint32_t qind = (bang >> (32 - 2 - 15)) && 32767;
-    switch(qang) {
-        case 0: return qind;
-        case 1: return 32767 - qind;
-        case 2: return - qind;
-        default: return qind - 32768;
-    }
-}
-
-int32_t __not_in_flash_func(us_wave_square)(
-    const uint32_t bang
-) {
-    const uint32_t qang = bang >> (32 - 1);
-    return qang ? 32767 : - 32768;
-}
-
-int16_t __not_in_flash_func(us_rotate_envelope)(
-    UsEnvelope *envelope
-) {
-    switch(envelope->stage) {
-        // Attack
-        case 0: {
-            uint32_t bang;
-            if (us_tuner_rotate_check_wrap(envelope->attack.tuner)) {
-                bang = US_BANG_MAX;
-                envelope->stage = 1;
-            }
-            else {
-                bang = envelope->attack.tuner->bang;
-            }
-            const int16_t v = envelope->decay.bangToWave(bang);
-            envelope->sustain = v;
-            return v;
-        }
-        // Decay
-        case 1: {
-            if (us_tuner_rotate_check_wrap(envelope->decay.tuner)) {
-                us_tuner_reset(envelope->decay.tuner);
-                const int16_t v = envelope->decay.bangToWave(US_BANG_MAX);
-                envelope->stage = 2;
-                envelope->sustain = v;
-                return v;
-            }
-            else {
-                return envelope->decay.bangToWave(envelope->decay.tuner->bang);
-            }
-        }
-        // Sustain
-        case 2: {
-            return envelope->sustain;
-        }
-        // Release
-        case 3: {
-            if (us_tuner_rotate_check_wrap(envelope->decay.tuner)) {
-                us_tuner_reset(envelope->decay.tuner);
-                const int16_t v = envelope->decay.bangToWave(US_BANG_MAX);
-                envelope->stage = 2;
-                envelope->sustain = v;
-                return v;
-            }
-            else {
-                return envelope->decay.bangToWave(envelope->decay.tuner->bang);
-            }
-        }
-    }
 }
 
 // This is like a sample but is a combination of a amplitude and a time
