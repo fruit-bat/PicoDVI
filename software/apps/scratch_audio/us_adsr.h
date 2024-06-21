@@ -19,4 +19,5 @@ typedef struct {
     uint8_t stage;        // the current stage
     UsTuner tuner;        // the current stage timer
     UsWaveFunc wave_func; // the current wave function
+    uint32_t vol;         // the current volume
 } UsAdsr;

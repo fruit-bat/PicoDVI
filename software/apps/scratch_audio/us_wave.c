@@ -74,3 +74,17 @@ int32_t __not_in_flash_func(us_wave_square)(
     const uint32_t qang = bang >> (32 - 1);
     return qang ? 32767 : - 32768;
 }
+
+int32_t __not_in_flash_func(us_wave_ramp_up)(
+    const uint32_t bang
+) {
+    const uint32_t qang = bang >> 16;
+    return qang > 32767 ? 32767 : qang;
+}
+
+int32_t __not_in_flash_func(us_wave_ramp_down)(
+    const uint32_t bang
+) {
+    const uint32_t qang = 32767 - (bang >> 16);
+    return qang < 0 ? 0 : qang;
+}

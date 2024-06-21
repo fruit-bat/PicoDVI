@@ -7,13 +7,22 @@ void __not_in_flash_func(us_adsr_init)(
     adsr->stage = UsAdsrStageOff;
 }
 
-void __not_in_flash_func(us_adsr_on)(
+void __not_in_flash_func(us_adsr_attack)(
     UsAdsr *adsr
 ) {
     adsr->stage = UsAdsrStageAttack;
     us_tuner_reset_phase(&adsr->tuner);
     us_tuner_set_pitch(&adsr->tuner, &adsr->attack);
-    // TODO set the tuner to an upward ramp
+    adsr->wave_func = us_wave_ramp_up;
+}
+
+void __not_in_flash_func(us_adsr_release)(
+    UsAdsr *adsr
+) {
+    adsr->stage = UsAdsrStageRelease;
+    us_tuner_reset_phase(&adsr->tuner);
+    us_tuner_set_pitch(&adsr->tuner, &adsr->release);
+    adsr->wave_func = us_wave_ramp_down;
 }
 
 inline int32_t us_adsr_bang_to_wave(
@@ -36,11 +45,12 @@ int32_t __not_in_flash_func(us_adsr_update)(
             if (us_tuner_rotate_check_wrap(&adsr->tuner)) {
                 v = adsr->wave_func(US_BANG_MAX);
                 adsr->stage = UsAdsrStageDecay;
+                adsr->wave_func = us_wave_ramp_down;
             }
             else {
                 v = us_adsr_bang_to_wave(adsr);
             }
-            adsr->sustain = v;
+            adsr->sustain = v; // TODO ?
             return v;
         }
         // Decay
@@ -49,7 +59,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
                 us_tuner_reset_phase(&adsr->tuner);
                 const int32_t v = adsr->wave_func(US_BANG_MAX);
                 adsr->stage = UsAdsrStageSustain;
-                adsr->sustain = v;
+                adsr->sustain = v; // TODO ?
                 return v;
             }
             else {
@@ -63,7 +73,6 @@ int32_t __not_in_flash_func(us_adsr_update)(
         // Release
         case UsAdsrStageRelease: {
             if (us_tuner_rotate_check_wrap(&adsr->tuner)) {
-                us_tuner_reset_phase(&adsr->tuner);
                 adsr->stage = UsAdsrStageOff;
                 return 0;
             }

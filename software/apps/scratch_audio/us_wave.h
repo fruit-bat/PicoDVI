@@ -20,3 +20,11 @@ int32_t us_wave_saw(
 int32_t us_wave_square(
     const uint32_t bang
 );
+
+int32_t us_wave_ramp_up(
+    const uint32_t bang
+);
+
+int32_t us_wave_ramp_down(
+    const uint32_t bang
+);
