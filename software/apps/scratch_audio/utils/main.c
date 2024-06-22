@@ -25,15 +25,15 @@ void us_set_freqency_hz(
         t1 >>= 1;
     }
     pitch->fips = t1;
-    pitch->eips = 16 - e;
+    pitch->eips = 32 - e;
 }
 
 void us_set_freqency_hz_double(
     UsPitch *pitch,
-    double fhz
+    double fhz // fixed pt 16 16
 ) {
     // Assume f/fs < 1
-    uint32_t f16 = (fhz * pow(2, 24));
+    uint32_t f16 = (fhz * pow(2, 16));
     us_set_freqency_hz(pitch, f16);
 }
 
@@ -73,7 +73,7 @@ int main(int argc, char**argv) {
     const int octaves = 8;
     const int sample_frequency = 44100;
     const int bits_per_word = 32;
-    const __float128 frequency_A_hz = 440; // Concert pitch A4 440Hz
+    const double frequency_A_hz = 440; // Concert pitch A4 440Hz
     const int first_note_index = -(12*5) - 9; // Concert pitch A4 440Hz
     const int last_note_index = (12*4)+10;
     const int number_of_notes = last_note_index - first_note_index + 1;
