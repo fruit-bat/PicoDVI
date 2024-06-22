@@ -5,6 +5,22 @@ void __not_in_flash_func(us_adsr_init)(
     UsAdsr *adsr
 ) {
     adsr->stage = UsAdsrStageOff;
+    adsr->sustain = 32767;
+
+    // TOTO remove - some test values for now
+
+    // 10ms attack
+    adsr->attack.fips = 1246611822UL;
+    adsr->attack.eips = 10;
+
+    // 10ms decay
+    adsr->decay.fips = 1246611822UL;
+    adsr->decay.eips = 10;
+
+    // 10ms release
+    adsr->release.fips = 1246611822UL;
+    adsr->release.eips = 11;
+
 }
 
 void __not_in_flash_func(us_adsr_attack)(
@@ -65,6 +81,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
                 adsr->vol = us_adsr_bang_to_wave(adsr);
                 if (adsr->vol <= adsr->sustain){
                     adsr->vol = adsr->sustain;
+                    adsr->stage = UsAdsrStageSustain;
                 }
             }
         }

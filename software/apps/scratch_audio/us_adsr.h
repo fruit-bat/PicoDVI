@@ -22,3 +22,25 @@ typedef struct {
     uint32_t vang;        // the current volume angle
     uint32_t vol;         // the current volume
 } UsAdsr;
+
+void us_adsr_init(
+    UsAdsr *adsr
+);
+
+void us_adsr_attack(
+    UsAdsr *adsr
+);
+
+void us_adsr_release(
+    UsAdsr *adsr
+);
+
+int32_t us_adsr_update(
+    UsAdsr *adsr
+);
+
+bool inline us_adsr_is_off(
+    UsAdsr *adsr
+) {
+    return adsr->stage == UsAdsrStageOff;
+}

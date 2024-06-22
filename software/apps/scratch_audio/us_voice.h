@@ -1,16 +1,15 @@
 #pragma once
 #include "us_wave.h"
+#include "us_adsr.h"
 
 typedef struct {
     UsTuner tuner;        // TODO Maybe too specific
     UsWaveFunc wave_func; // TODO Maybe too specific
+    UsAdsr adsr;
     uint32_t gain;        // 0 <= Gain <= 256
 } UsVoice;
 
-inline void us_voice_init(UsVoice* voice, UsWaveFunc wave_func) {
-    voice->wave_func = wave_func;
-    voice->gain = 0;
-}
+void us_voice_init(UsVoice* voice, UsWaveFunc wave_func);
 
 int32_t us_voice_update(UsVoice* voice);
 
