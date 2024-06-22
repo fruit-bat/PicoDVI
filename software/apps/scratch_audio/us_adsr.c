@@ -14,6 +14,7 @@ void __not_in_flash_func(us_adsr_attack)(
     us_tuner_reset_phase(&adsr->tuner);
     us_tuner_set_pitch(&adsr->tuner, &adsr->attack);
     adsr->wave_func = us_wave_ramp_up;
+    adsr->vol = 0;
 }
 
 void __not_in_flash_func(us_adsr_release)(
@@ -22,7 +23,7 @@ void __not_in_flash_func(us_adsr_release)(
     adsr->stage = UsAdsrStageRelease;
     us_tuner_reset_phase(&adsr->tuner);
     us_tuner_set_pitch(&adsr->tuner, &adsr->release);
-    adsr->wave_func = us_wave_ramp_down;
+    adsr->wave_func = us_wave_ramp_up;
 }
 
 inline int32_t us_adsr_bang_to_wave(
@@ -41,29 +42,30 @@ int32_t __not_in_flash_func(us_adsr_update)(
         }
         // Attack
         case UsAdsrStageAttack: {
-            uint32_t v;
             if (us_tuner_rotate_check_wrap(&adsr->tuner)) {
-                v = adsr->wave_func(US_BANG_MAX);
+                adsr->vol = 32767;
                 adsr->stage = UsAdsrStageDecay;
+                us_tuner_reset_phase(&adsr->tuner);
+                us_tuner_set_pitch(&adsr->tuner, &adsr->decay);                
                 adsr->wave_func = us_wave_ramp_down;
             }
             else {
-                v = us_adsr_bang_to_wave(adsr);
+                adsr->vol = us_adsr_bang_to_wave(adsr);
             }
-            adsr->sustain = v; // TODO ?
-            return v;
+            return adsr->vol;
         }
         // Decay
         case UsAdsrStageDecay: {
             if (us_tuner_rotate_check_wrap(&adsr->tuner)) {
-                us_tuner_reset_phase(&adsr->tuner);
-                const int32_t v = adsr->wave_func(US_BANG_MAX);
-                adsr->stage = UsAdsrStageSustain;
-                adsr->sustain = v; // TODO ?
-                return v;
+                // This should never happen
+                adsr->vol = 0;
+                adsr->stage = UsAdsrStageOff;
             }
             else {
-                return us_adsr_bang_to_wave(adsr);
+                adsr->vol = us_adsr_bang_to_wave(adsr);
+                if (adsr->vol <= adsr->sustain){
+                    adsr->vol = adsr->sustain;
+                }
             }
         }
         // Sustain
@@ -77,7 +79,12 @@ int32_t __not_in_flash_func(us_adsr_update)(
                 return 0;
             }
             else {
-                return us_adsr_bang_to_wave(adsr);
+                uint32_t d = us_adsr_bang_to_wave(adsr);
+                if (d > adsr->vol) {
+                    adsr->stage = UsAdsrStageOff;
+                    return 0;
+                }
+                return adsr->vol - d;
             }
         }
         default: {

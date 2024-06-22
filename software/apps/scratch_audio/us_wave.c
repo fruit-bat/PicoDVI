@@ -85,6 +85,6 @@ int32_t __not_in_flash_func(us_wave_ramp_up)(
 int32_t __not_in_flash_func(us_wave_ramp_down)(
     const uint32_t bang
 ) {
-    const uint32_t qang = 32767 - (bang >> 16);
+    const int32_t qang = 32767 - (bang >> 16);
     return qang < 0 ? 0 : qang;
 }
