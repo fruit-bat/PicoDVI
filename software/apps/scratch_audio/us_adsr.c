@@ -19,7 +19,7 @@ void __not_in_flash_func(us_adsr_init)(
 
     // 10ms release
     adsr->release.fips = 1246611822UL;
-    adsr->release.eips = 11;
+    adsr->release.eips = 12;
 
 }
 
