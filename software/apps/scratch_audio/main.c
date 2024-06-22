@@ -20,6 +20,7 @@
 #include "u_synth.h"
 #include "us_voices.h"
 #include "us_pm.h"
+#include "us_lpf.h"
 #include "bach_packed_midi_1.h"
 // End music stuff
 
@@ -62,10 +63,12 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 
 static UsVoices voices;
 static UsPmSequencer sequencer;
+static UsLpf lpf;
 
 void setup_synth() {
 	us_voices_init(&voices,  us_wave_ramp_up /* us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */);
 	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
+	us_lpf_init(&lpf, 40000);
 }
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
@@ -77,7 +80,8 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
 			us_pm_sequencer_update(&sequencer);
-			int16_t s = (int16_t)us_voices_update(&voices);
+			const int32_t v = us_voices_update(&voices);
+			const int16_t s = (int16_t)us_lpf_sample(&lpf, v);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
 			*audio_ptr++ = sample;
