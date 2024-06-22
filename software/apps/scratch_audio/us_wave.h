@@ -28,3 +28,7 @@ int32_t us_wave_ramp_up(
 int32_t us_wave_ramp_down(
     const uint32_t bang
 );
+
+int32_t us_wave_not_square_lerp(
+    const uint32_t bang
+);

@@ -16,43 +16,56 @@ inline static int32_t us_lerp_n(
 
 #define US_SIN_SAMPLES_LOG2 7L
 
-inline static int32_t us_wave_sin_sample_q(
+inline static int32_t us_wave_quater_sample_q(
     const uint32_t qang,
-    const uint32_t qind
+    const uint32_t qind,
+    const uint16_t* samples,
+    const uint32_t sample_count
 ) {
     switch(qang) {
-        case 0: return us_sin[qind];
-        case 1: return us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
-        case 2: return - us_sin[qind];
-        default: return - us_sin[(1 << US_SIN_SAMPLES_LOG2) - qind];
+        case 0: return samples[qind];
+        case 1: return samples[sample_count - qind];
+        case 2: return - samples[qind];
+        default: return - samples[sample_count - qind];
     }
 }
 
-inline static int32_t us_wave_sin_sample(
-    const uint32_t sang
+inline static int32_t us_wave_quarter_sample(
+    const uint32_t sang,
+    const uint16_t* samples,
+    const uint32_t sample_count_ln2
 ) {
-    const uint32_t qang = sang >> US_SIN_SAMPLES_LOG2;
-    const uint32_t qind = sang & ((1L << US_SIN_SAMPLES_LOG2) - 1L);
-    return us_wave_sin_sample_q(qang, qind);
+    const int32_t sample_count = 1L << sample_count_ln2;
+    const uint32_t qang = sang >> sample_count_ln2;
+    const uint32_t qind = sang & (sample_count - 1L);
+    return us_wave_quater_sample_q(qang, qind, samples, sample_count);
+}
+
+inline static int32_t us_wave_quarter_lerp(
+    const uint32_t bang,
+    const uint16_t* samples,
+    const uint32_t sample_count_ln2
+) {
+    const uint32_t zang = bang >> (32 - (2 + sample_count_ln2 + 8));
+    const uint32_t fang = zang & 255;
+    const uint32_t sang1 = zang >> 8;
+    const int32_t s1 = us_wave_quarter_sample(sang1, samples, sample_count_ln2);
+    const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + sample_count_ln2)) - 1);
+    const int32_t s2 = us_wave_quarter_sample(sang2, samples, sample_count_ln2);
+    return us_lerp_n(s1, s2, fang, 8);
 }
 
 int32_t __not_in_flash_func(us_wave_sin_lerp)(
     const uint32_t bang
 ) {
-    const uint32_t zang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2 + 8));
-    const uint32_t fang = zang & 255;
-    const uint32_t sang1 = zang >> 8;
-    const int32_t s1 = us_wave_sin_sample(sang1);
-    const uint32_t sang2 = (sang1 + 1) & ((1 << (2 + US_SIN_SAMPLES_LOG2)) - 1);
-    const int32_t s2 = us_wave_sin_sample(sang2);
-    return us_lerp_n(s1, s2, fang, 8);
+    return us_wave_quarter_lerp(bang, us_sin, US_SIN_SAMPLES_LOG2);
 }
 
 int32_t __not_in_flash_func(us_wave_sin)(
     const uint32_t bang
 ) {
     const uint32_t sang = bang >> (32 - (2 + US_SIN_SAMPLES_LOG2));
-    return us_wave_sin_sample(sang);
+    return us_wave_quarter_sample(sang, us_sin, US_SIN_SAMPLES_LOG2);
 }
 
 int32_t __not_in_flash_func(us_wave_saw)(
@@ -87,4 +100,18 @@ int32_t __not_in_flash_func(us_wave_ramp_down)(
 ) {
     const int32_t qang = 32767L - (int32_t)(bang >> 16);
     return qang < 0 ? 0 : qang;
+}
+
+const uint16_t us_wave_not_square_samples[] = {
+    0,
+    15000,
+    15000,
+    30000,
+    32767
+};
+
+int32_t __not_in_flash_func(us_wave_not_square_lerp)(
+    const uint32_t bang
+) {
+    return us_wave_quarter_lerp(bang, us_wave_not_square_samples, 2);
 }
