@@ -6,7 +6,7 @@ typedef struct {
     UsTuner tuner;        // TODO Maybe too specific
     UsWaveFunc wave_func; // TODO Maybe too specific
     UsAdsr adsr;
-    uint32_t gain;        // 0 <= Gain <= 256
+    uint32_t gain;        // 0 <= Gain <= 256 // TODO Think about this one (0-127 coming from midi files)
 } UsVoice;
 
 void us_voice_init(UsVoice* voice, UsWaveFunc wave_func);

@@ -56,7 +56,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             const uint32_t k = cursor[2];
             const uint32_t v = cursor[3];
             if (i < US_VOICE_COUNT) {
-                us_voice_note_on(&voices->voice[i], k, v);
+                us_voice_note_on(&voices->voice[i], k, v<<1);
             }
             cursor += SynCmdOnLen;
             break;
@@ -65,7 +65,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             const uint32_t i = cursor[1];
             const uint32_t v = cursor[3];            
             if (i < US_VOICE_COUNT) {
-                us_voice_note_off(&voices->voice[i], v);
+                us_voice_note_off(&voices->voice[i], v<<1);
             }
             cursor += SynCmdOffLen;
             break;
