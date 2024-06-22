@@ -15,7 +15,7 @@ void __not_in_flash_func(us_adsr_init)(
 
     // 10ms decay
     adsr->decay.fips = 1246611822UL;
-    adsr->decay.eips = 14;
+    adsr->decay.eips = 15;
 
     // 10ms release
     adsr->release.fips = 1246611822UL;

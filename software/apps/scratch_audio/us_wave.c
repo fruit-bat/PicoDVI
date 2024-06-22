@@ -105,7 +105,7 @@ int32_t __not_in_flash_func(us_wave_ramp_down)(
 const uint16_t us_wave_not_square_samples[] = {
     0,
     15000,
-    15000,
+    17000,
     30000,
     32767
 };
