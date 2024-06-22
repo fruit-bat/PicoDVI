@@ -9,7 +9,7 @@ typedef struct {
     uint32_t gain;        // 0 <= Gain <= 256 // TODO Think about this one (0-127 coming from midi files)
 } UsVoice;
 
-void us_voice_init(UsVoice* voice, UsWaveFunc wave_func);
+void us_voice_init(UsVoice* voice, UsWaveFunc wave_func, UsAdsrConfig *adsr_config);
 
 int32_t us_voice_update(UsVoice* voice);
 

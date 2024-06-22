@@ -1,6 +1,12 @@
 #include "us_tuner.h"
 #include "us_tuner_notes.h"
 
+// This should work up to 4104
+// We could use this to reduce the size of the tone tables... but not sure it is worth it.
+static inline int32_t us_tuner_divide_by_12_approx(uint32_t n) {
+    return (__mul_instruction(n, 1365) + 1364) >> 14;
+}
+
 void __not_in_flash_func(us_tuner_set_note)(
     UsTuner *tuner,
     uint32_t ni

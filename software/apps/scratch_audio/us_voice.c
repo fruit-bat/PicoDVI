@@ -1,9 +1,9 @@
 #include "us_voice.h"
 
-void __not_in_flash_func(us_voice_init)(UsVoice* voice, UsWaveFunc wave_func) {
+void __not_in_flash_func(us_voice_init)(UsVoice* voice, UsWaveFunc wave_func, UsAdsrConfig *adsr_config) {
     voice->wave_func = wave_func;
     voice->gain = 0;
-    us_adsr_init(&voice->adsr);
+    us_adsr_init(&voice->adsr, adsr_config);
 }
 
 int32_t __not_in_flash_func(us_voice_update)(UsVoice* voice) {

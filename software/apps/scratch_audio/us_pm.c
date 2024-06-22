@@ -81,10 +81,8 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
         }
         break;
     }
-
     return cursor;
 }
-
 
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,

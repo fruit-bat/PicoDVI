@@ -1,26 +1,24 @@
 #include "us_adsr.h"
 
-
-void __not_in_flash_func(us_adsr_init)(
-    UsAdsr *adsr
+void us_adsr_config_init(
+    UsAdsrConfig *adsr
 ) {
-    adsr->stage = UsAdsrStageOff;
+    // Some vaugly pleasant values
     adsr->sustain = 16384;
-
-    // TOTO remove - some test values for now
-
-    // 10ms attack
     adsr->attack.fips = 1246611822UL;
     adsr->attack.eips = 9;
-
-    // 10ms decay
     adsr->decay.fips = 1246611822UL;
     adsr->decay.eips = 15;
-
-    // 10ms release
     adsr->release.fips = 1246611822UL;
-    adsr->release.eips = 14;
+    adsr->release.eips = 14; 
+}
 
+void __not_in_flash_func(us_adsr_init)(
+    UsAdsr *adsr,
+    UsAdsrConfig *adsr_config
+) {
+    adsr->stage = UsAdsrStageOff;
+    adsr->config = adsr_config;
 }
 
 void __not_in_flash_func(us_adsr_attack)(
@@ -28,7 +26,7 @@ void __not_in_flash_func(us_adsr_attack)(
 ) {
     adsr->stage = UsAdsrStageAttack;
     us_tuner_reset_phase(&adsr->tuner);
-    us_tuner_set_pitch(&adsr->tuner, &adsr->attack);
+    us_tuner_set_pitch(&adsr->tuner, &adsr->config->attack);
     adsr->wave_func = us_wave_ramp_up;
     adsr->vol = 0;
 }
@@ -38,7 +36,7 @@ void __not_in_flash_func(us_adsr_release)(
 ) {
     adsr->stage = UsAdsrStageRelease;
     us_tuner_reset_phase(&adsr->tuner);
-    us_tuner_set_pitch(&adsr->tuner, &adsr->release);
+    us_tuner_set_pitch(&adsr->tuner, &adsr->config->release);
     adsr->wave_func = us_wave_ramp_up;
 }
 
@@ -62,7 +60,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
                 adsr->vol = 32767;
                 adsr->stage = UsAdsrStageDecay;
                 us_tuner_reset_phase(&adsr->tuner);
-                us_tuner_set_pitch(&adsr->tuner, &adsr->decay);                
+                us_tuner_set_pitch(&adsr->tuner, &adsr->config->decay);                
                 adsr->wave_func = us_wave_ramp_down;
             }
             else {
@@ -79,7 +77,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
             }
             else {
                 adsr->vol = us_adsr_bang_to_wave(adsr);
-                if (adsr->vol <= adsr->sustain){
+                if (adsr->vol <= adsr->config->sustain){
                     adsr->stage = UsAdsrStageSustain;
                 }
             }

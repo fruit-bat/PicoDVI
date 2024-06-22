@@ -1,6 +1,41 @@
+// gcc  main.c -lm  && ./a.out > ~/pico/PicoDVI/software/apps/scratch_audio/u_synth_tone_tables.h
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <stdint.h>
+
+#define US_SAMPLE_RATE_HZ 44100
+
+typedef struct {
+    uint32_t fips; // Increment per sample ((2^(32+be))*f/sf)
+    uint32_t eips;  // Negative binary exponent of fips (-be)
+} UsPitch;
+
+void us_set_freqency_hz(
+    UsPitch *pitch,
+    uint32_t fhz // fixed pt 16 16
+) {
+    // Assume f/fs < 1
+    uint64_t t1 = (((uint64_t)fhz) << 32ULL) / ((uint64_t)US_SAMPLE_RATE_HZ);
+    // Shift right until only 31 bits are used (slow)
+    int32_t e = 0;
+    while(t1 > ((1L << 31L) - 1L)) {
+        e++;
+        t1 >>= 1;
+    }
+    pitch->fips = t1;
+    pitch->eips = 16 - e;
+}
+
+void us_set_freqency_hz_double(
+    UsPitch *pitch,
+    double fhz
+) {
+    // Assume f/fs < 1
+    uint32_t f16 = (fhz * pow(2, 24));
+    us_set_freqency_hz(pitch, f16);
+}
 
 // gcc main.c -lm  && ./a.out
 //
@@ -38,7 +73,7 @@ int main(int argc, char**argv) {
     const int octaves = 8;
     const int sample_frequency = 44100;
     const int bits_per_word = 32;
-    const double frequency_A_hz = 440; // Concert pitch A4 440Hz
+    const __float128 frequency_A_hz = 440; // Concert pitch A4 440Hz
     const int first_note_index = -(12*5) - 9; // Concert pitch A4 440Hz
     const int last_note_index = (12*4)+10;
     const int number_of_notes = last_note_index - first_note_index + 1;
@@ -59,6 +94,12 @@ int main(int argc, char**argv) {
         const int o = ((osi + (12*7))/ 12) - 2;
         
         printf("//  %3d %3d   %5.5s %10.3lfHz  %4d %4d %10.10ld =(%32.32lb << %2d)=%32.32lb\n", i, o, nn, f, k, j, h, (unsigned long)(g * pow(2, bits_per_word)), j, h);
+
+        UsPitch pitch;
+        us_set_freqency_hz_double(&pitch, f);
+        printf("//  %3d %3d   %5.5s %10.3lfHz  %4d %4d %10.10ld =(%32.32lb << %2d)=%32.32lb\n\n", i, o, nn, f, k, pitch.eips, pitch.fips, (unsigned long)(g * pow(2, bits_per_word)), pitch.eips, pitch.fips);
+
+
 
         NoteInfo *note_info = &note_infos[i];
         note_info->bae = j;

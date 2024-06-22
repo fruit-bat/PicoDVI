@@ -15,7 +15,10 @@ typedef struct {
     UsPitch decay;     // Decay time
     uint32_t sustain;  // Susstain level
     UsPitch release;   // Release time
+} UsAdsrConfig;
 
+typedef struct {
+    UsAdsrConfig *config; // ADSR configuration
     uint8_t stage;        // the current stage
     UsTuner tuner;        // the current stage timer
     UsWaveFunc wave_func; // the current wave function
@@ -23,8 +26,13 @@ typedef struct {
     uint32_t vol;         // the current volume
 } UsAdsr;
 
+void us_adsr_config_init(
+    UsAdsrConfig *adsr
+);
+
 void us_adsr_init(
-    UsAdsr *adsr
+    UsAdsr *adsr,
+    UsAdsrConfig *adsr_config
 );
 
 void us_adsr_attack(

@@ -9,6 +9,6 @@ typedef struct {
     int32_t out;
 } UsVoices;
 
-void us_voices_init(UsVoices *voices, UsWaveFunc wave_func);
+void us_voices_init(UsVoices *voices, UsWaveFunc wave_func, UsAdsrConfig *adsr_config);
 
 int32_t us_voices_update(UsVoices *voices);

@@ -1,8 +1,8 @@
 #include "us_voices.h"
 
-void us_voices_init(UsVoices *voices, UsWaveFunc wave_func) {
+void us_voices_init(UsVoices *voices, UsWaveFunc wave_func, UsAdsrConfig *adsr_config) {
     for(int32_t i = 0; i < US_VOICE_COUNT; ++i) {
-        us_voice_init(&voices->voice[i], wave_func);
+        us_voice_init(&voices->voice[i], wave_func, adsr_config);
     }
     voices->out = 0;
 }

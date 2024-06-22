@@ -17,7 +17,6 @@
 #include "common_dvi_pin_configs.h"
 
 // Music stuff
-#include "u_synth.h"
 #include "us_voices.h"
 #include "us_pm.h"
 #include "us_lpf.h"
@@ -64,9 +63,15 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 static UsVoices voices;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
+static UsAdsrConfig adsr_config;
 
 void setup_synth() {
-	us_voices_init(&voices,  us_wave_not_square_lerp /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */);
+	us_adsr_config_init(&adsr_config);
+	us_voices_init(
+		&voices,
+		us_wave_not_square_lerp, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
+		&adsr_config
+	);
 	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
 	us_lpf_init(&lpf, 25000);
 }
