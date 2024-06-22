@@ -5,7 +5,7 @@ void __not_in_flash_func(us_adsr_init)(
     UsAdsr *adsr
 ) {
     adsr->stage = UsAdsrStageOff;
-    adsr->sustain = 2048;
+    adsr->sustain = 4096;
 
     // TOTO remove - some test values for now
 
