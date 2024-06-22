@@ -64,7 +64,7 @@ static UsVoices voices;
 static UsPmSequencer sequencer;
 
 void setup_synth() {
-	us_voices_init(&voices,  us_wave_sin /* us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */);
+	us_voices_init(&voices,  us_wave_ramp_up /* us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */);
 	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
 }
 
