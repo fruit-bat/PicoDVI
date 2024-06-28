@@ -69,7 +69,7 @@ void setup_synth() {
 	us_adsr_config_init(&adsr_config);
 	us_voices_init(
 		&voices,
-		us_wave_not_square_lerp, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
+		us_wave_sin_lerp, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
 		&adsr_config
 	);
 	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
