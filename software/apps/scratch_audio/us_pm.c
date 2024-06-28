@@ -30,7 +30,7 @@ static inline void us_pm_set_ppq(
     UsPmSequencer *sequencer,
     uint32_t ppq
 ) {
-    sequencer->clock.fips = __mul_instruction(ppq, US_US_PER_SAMPLE_BITS);
+    sequencer->clock.pitch.fips = __mul_instruction(ppq, US_US_PER_SAMPLE_BITS);
 }
 
 UsPmCursor __not_in_flash_func(us_pm_step)(
@@ -92,7 +92,7 @@ void us_pm_sequencer_init(
 ) {
     us_tuner_reset_phase(&sequencer->clock);
     us_pm_set_ppq(sequencer, 384L);
-    sequencer->clock.eips = US_US_PER_SAMPLE_NEXP;
+    sequencer->clock.pitch.eips = US_US_PER_SAMPLE_NEXP;
     sequencer->tempo = 600000L;
     sequencer->cursor = sequence;
     sequencer->sequence = sequence;
