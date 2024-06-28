@@ -5,8 +5,12 @@ void __not_in_flash_func(us_tuner_set_note)(
     UsTuner *tuner,
     uint32_t ni
 ){
-    tuner->eips = us_bas[ni];
-    tuner->fips = us_bae[ni];
+ //   tuner->eips = us_bas[ni];
+ //   tuner->fips = us_bae[ni];
+    UsPitch pitch;
+    us_pitch_set_midi_note(&pitch, ni, 0);
+    tuner->eips = pitch.eips;
+    tuner->fips = pitch.fips;    
 }
 
 uint32_t inline us_rotate_facc(

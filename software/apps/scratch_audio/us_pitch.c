@@ -9,7 +9,7 @@ static inline int32_t us_divide_by_12_approx(uint32_t n) {
 }
 
 // Select a tone from the table, no lerp
-void us_set_midi_note(
+void us_pitch_set_midi_note(
     UsPitch *pitch,             // Pitch to set
     const uint32_t note_index,  // MIDI note number, range 0, 127
     const int32_t pitch_bend)   // 0 = no bend, range +/- 16384, for 2 tones
@@ -18,7 +18,7 @@ void us_set_midi_note(
     const int32_t mni = (fni >> US_NOTE_FRACTIONS_LOG2);
     const uint32_t octave = us_divide_by_12_approx(mni);
     const int32_t ani = fni - (__mul_instruction(octave, US_NOTE_TABLE_SIZE));
-    pitch->eips = us_pitch_table_eips[ani] + octave;
+    pitch->eips = us_pitch_table_eips[ani] - octave;
     pitch->fips = us_pitch_table_fips[ani];
 }
 
