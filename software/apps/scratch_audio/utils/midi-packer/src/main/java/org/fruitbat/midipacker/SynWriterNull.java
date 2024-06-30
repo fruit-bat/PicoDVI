@@ -30,4 +30,7 @@ public class SynWriterNull implements SynWriter {
     public void writeStart() {
     }
 
+    @Override
+    public void writeBend(final int index, final int amount) {
+    }
 }

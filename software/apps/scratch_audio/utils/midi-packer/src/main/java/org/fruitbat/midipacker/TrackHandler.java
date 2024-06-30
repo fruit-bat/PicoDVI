@@ -55,8 +55,14 @@ public class TrackHandler {
 					noteOff(tick, channel, sm.getData1(), sm.getData2());
 					break;
 				}
+				case ShortMessage.PITCH_BEND: {
+					final int b = ((sm.getData1() & 0x7f) | ((sm.getData2() & 0x7f) << 7)) - 8192;
+					_syn.bend(tick, _index, channel, b);
+					System.out.println("PITCH_BEND: " + sm.getData1() + " " + sm.getData2() + " " + b);
+					break;
+				}				
 				default: {
-					//System.out.println("Command: " + sm.getCommand());
+					System.out.println("Command: " + sm.getCommand());
 					break;
 				}
 				}

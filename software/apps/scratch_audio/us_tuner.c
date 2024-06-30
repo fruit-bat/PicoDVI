@@ -2,9 +2,10 @@
 
 void __not_in_flash_func(us_tuner_set_note)(
     UsTuner *tuner,
-    uint32_t ni
+    uint32_t ni,
+    int32_t bend
 ){
-    us_pitch_set_midi_note(&tuner->pitch, ni, 0);
+    us_pitch_set_midi_note(&tuner->pitch, ni, bend);
 }
 
 uint32_t inline us_rotate_facc(

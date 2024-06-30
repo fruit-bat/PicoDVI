@@ -7,5 +7,6 @@ public interface SynWriter {
     public void writeVoiceOn(final int index, final int key, final int velocity);
     public void writeVoiceOff(final int index, final int velocity);
     public void writeTime(final long absTicks);
+    public void writeBend(final int index, final int amount);
     public void writeEnd();
 }

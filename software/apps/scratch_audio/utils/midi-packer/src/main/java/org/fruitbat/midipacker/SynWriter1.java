@@ -7,6 +7,7 @@ enum SynCommands {
     SynCmdTempo,
     SynCmdOn,
     SynCmdOff,
+    SynCmdBend,
     SynCmdTime,
     SynCmdEnd
 }
@@ -119,5 +120,16 @@ public class SynWriter1 implements SynWriter {
                     d));
             }
         }
+    }
+
+    @Override
+    public void writeBend(final int index, final int amount) {
+        writeTimeDelta();
+        println(String.format("  0x%02X, 0x%02X, %s // Bend voice %d, amount %d",
+            SynCommands.SynCmdBend.ordinal(),
+            index,
+            nbytes(amount, 2),
+            index,
+            amount));  
     }
 }

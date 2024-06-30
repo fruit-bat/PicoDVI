@@ -70,6 +70,14 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             cursor += SynCmdOffLen;
             break;
         }
+        case SynCmdBend: {
+            const uint32_t i = cursor[1];
+            if (i < US_VOICE_COUNT) {
+                us_voice_bend(&voices->voice[i], us_pm_word16(cursor + 1));
+            }
+            cursor += SynCmdBendLen;
+            break;
+        }        
         case SynCmdTime: {
             sequencer->ticks += us_pm_word16(cursor + 1);
             cursor += SynCmdTimeLen;

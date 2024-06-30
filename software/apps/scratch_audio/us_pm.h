@@ -10,6 +10,7 @@ enum UsPmCommands {
     SynCmdTempo,
     SynCmdOn,
     SynCmdOff,
+    SynCmdBend,
     SynCmdTime,
     SynCmdEnd
 };
@@ -19,6 +20,7 @@ enum UsPmCommandLen {
     SynCmdTempoLen = 4,
     SynCmdOnLen = 4,
     SynCmdOffLen = 3,
+    SynCmdBendLen = 4,
     SynCmdTimeLen = 3,
     SynCmdEndLen = 1
 };

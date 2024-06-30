@@ -5,23 +5,32 @@ package org.fruitbat.midipacker;
  */
 public class Voice {
     private boolean _on = false;
+    private VoiceGroup _group;
     private int _index;
-    private int _track;
-    private int _channel;
     private int _key;
 
     public Voice(final int index) {
         _index = index;
+        _group = null;
+    }
+
+    public VoiceGroup group() {
+        return _group;
     }
 
     public boolean is(final int track, final int channel, final int key) {
-        return _track == track && _channel == channel && _key == key;
+        return _group != null && _group.key().is(track, channel) && _key == key;
+    }
+    public boolean is(final VoiceGroupKey groupKey, final int key) {
+        return _group != null && _group.key().equals(groupKey) && _key == key;
     }
 
-    public void on(final int track, final int channel, final int key) {
+    public void assign(VoiceGroup group) {
+        _group = group;
+    }
+
+    public void on(final int key) {
         _on = true;
-        _track = track;
-        _channel = channel;
         _key = key;
     }
 
