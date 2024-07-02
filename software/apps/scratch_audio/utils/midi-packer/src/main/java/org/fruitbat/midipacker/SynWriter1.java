@@ -64,14 +64,16 @@ public class SynWriter1 implements SynWriter {
     }
 
     @Override
-    public void writeVoiceOn(int index, int key, int velocity) {
+    public void writeVoiceOn(int index, int group, int key, int velocity) {
         writeTimeDelta();
-        println(String.format("  0x%02X, 0x%02X, 0x%02X, 0x%02X, // Voice on %d, key %d, velocity %d",
+        println(String.format("  0x%02X, 0x%02X, 0x%02X, 0x%02X, 0x%02X, // Voice on %d, Group %d, key %d, velocity %d",
             SynCommands.SynCmdOn.ordinal(),
             index,
+            group,
             key,
             velocity,
             index,
+            group,
             key,
             velocity));        
     }
@@ -125,7 +127,7 @@ public class SynWriter1 implements SynWriter {
     @Override
     public void writeBend(final int index, final int amount) {
         writeTimeDelta();
-        println(String.format("  0x%02X, 0x%02X, %s // Bend voice %d, amount %d",
+        println(String.format("  0x%02X, 0x%02X, %s // Bend group %d, amount %d",
             SynCommands.SynCmdBend.ordinal(),
             index,
             nbytes(amount, 2),

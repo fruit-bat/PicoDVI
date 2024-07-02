@@ -18,8 +18,8 @@ public class Main {
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		final List<String> files = new ArrayList<>();
-//		files.add("pitch_bend_1");
-		files.add("bach_example_1");
+		files.add("pitch_bend_1");
+//		files.add("bach_example_1");
 		//files.add("example");
 		// files.add("moonlight");
 		// files.add("bwv0248a");

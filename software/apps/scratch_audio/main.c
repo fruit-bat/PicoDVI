@@ -18,10 +18,11 @@
 
 // Music stuff
 #include "us_voices.h"
+#include "us_groups.h"
 #include "us_pm.h"
 #include "us_lpf.h"
-#include "bach_packed_midi_1.h"
-//#include "pitch_bend_packed_midi.h"
+//#include "bach_packed_midi_1.h"
+#include "pitch_bend_packed_midi.h"
 // End music stuff
 
 #include "font_inv.h"
@@ -62,18 +63,20 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 };
 
 static UsVoices voices;
+static UsGroups groups;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
 static UsAdsrConfig adsr_config;
 
 void setup_synth() {
 	us_adsr_config_init(&adsr_config);
+	us_groups_init(&groups);
 	us_voices_init(
 		&voices,
-		us_wave_sin_lerp, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
+		us_wave_saw, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
 		&adsr_config
 	);
-	us_pm_sequencer_init(&sequencer, &voices, syn_notes, true);
+	us_pm_sequencer_init(&sequencer, &voices, &groups, syn_notes, true);
 	us_lpf_init(&lpf, 25000);
 }
 

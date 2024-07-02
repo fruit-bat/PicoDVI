@@ -17,6 +17,13 @@ inline uint32_t us_pm_word16(UsPmCursor cursor) {
     return r;
 }
 
+inline int32_t us_pm_int16(UsPmCursor cursor) {
+    int16_t r = cursor[0];
+    r <<= 8;
+    r |= cursor[1];
+    return (int32_t)r;
+}
+
 inline uint32_t us_pm_word24(UsPmCursor cursor) {
     uint32_t r = cursor[0];
     r <<= 8;
@@ -39,6 +46,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
     UsPmCursor cursor = sequencer->cursor;   
     if (cursor == NULL) return cursor;
     UsVoices *voices = sequencer->voices;
+    UsGroups *groups = sequencer->groups;
     const uint8_t type = *cursor;
     switch(type) {
         case SynCmdPPQ: {
@@ -51,12 +59,14 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             cursor += SynCmdTempoLen;
             break;
         }
-        case SynCmdOn: { // voice, key, velociy
+        case SynCmdOn: { // voice, group, key, velociy
             const uint32_t i = cursor[1];
-            const uint32_t k = cursor[2];
-            const uint32_t v = cursor[3];
+            const uint32_t g = cursor[2];
+            const uint32_t k = cursor[3];
+            const uint32_t v = cursor[4];
+            UsGroup *group = us_groups_get(groups, g);
             if (i < US_VOICE_COUNT) {
-                us_voice_note_on(&voices->voice[i], k, v<<1);
+                us_voice_note_on(&voices->voice[i], g, k, group->bend, v<<1);
             }
             cursor += SynCmdOnLen;
             break;
@@ -71,9 +81,15 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             break;
         }
         case SynCmdBend: {
-            const uint32_t i = cursor[1];
-            if (i < US_VOICE_COUNT) {
-                us_voice_bend(&voices->voice[i], us_pm_word16(cursor + 1));
+            const uint32_t g = cursor[1];
+            const int32_t bend = us_pm_int16(cursor + 1);
+            UsGroup *group = us_groups_get(groups, g);
+            group->bend = bend;
+            for(uint32_t i = 0; i < US_VOICE_COUNT; ++i) {
+                UsVoice *voice = &voices->voice[i];
+                if (voice->group == g && !us_voice_is_off(voice)) {
+                    us_voice_bend(&voices->voice[i], bend);
+                }
             }
             cursor += SynCmdBendLen;
             break;
@@ -95,6 +111,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
     UsVoices *voices,
+    UsGroups *groups,
     UsPmCursor sequence,
     bool repeat
 ) {
@@ -106,6 +123,7 @@ void us_pm_sequencer_init(
     sequencer->sequence = sequence;
     sequencer->ticks = 0;
     sequencer->voices = voices;
+    sequencer->groups = groups;
     sequencer->repeat = repeat;
 }
 

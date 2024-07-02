@@ -1,12 +1,12 @@
 package org.fruitbat.midipacker;
 
 public class VoiceGroup {
-    private VoiceGroupKey _key;
+    private final VoiceGroupKey _key;
+    private final int _id;
 
-    private Integer _bend = null;
-
-    public VoiceGroup(final VoiceGroupKey key) {
+    public VoiceGroup(final VoiceGroupKey key, final int id) {
         _key = key;
+        _id = id;
     }
 
     public VoiceGroupKey key() {
@@ -18,13 +18,9 @@ public class VoiceGroup {
         if (o == null || !(o instanceof VoiceGroup)) return false;
         final VoiceGroup g = (VoiceGroup)o;
         return _key.equals(g._key);
-    }    
-
-    public void bend(Integer bend) {
-        _bend = bend;
     }
 
-    public Integer bend() {
-        return _bend;
+    public int id() {
+        return _id;
     }
 }

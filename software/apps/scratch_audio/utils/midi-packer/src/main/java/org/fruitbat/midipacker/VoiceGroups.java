@@ -9,7 +9,7 @@ public class VoiceGroups {
     public VoiceGroup get(final VoiceGroupKey key) {
         final VoiceGroup g1 = _groups.get(key);
         if (g1 != null) return g1;
-        final VoiceGroup g2 = new VoiceGroup(key);
+        final VoiceGroup g2 = new VoiceGroup(key, _groups.size());
         _groups.put(key, g2);
         return g2;
     }

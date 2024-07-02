@@ -60,7 +60,7 @@ public class TrackHandler {
 					_syn.bend(tick, _index, channel, b);
 					System.out.println("PITCH_BEND: " + sm.getData1() + " " + sm.getData2() + " " + b);
 					break;
-				}				
+				}
 				default: {
 					System.out.println("Command: " + sm.getCommand());
 					break;
