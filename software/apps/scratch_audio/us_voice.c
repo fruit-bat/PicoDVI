@@ -9,7 +9,7 @@ void __not_in_flash_func(us_voice_init)(UsVoice* voice, UsWaveFunc wave_func, Us
 }
 
 int32_t __not_in_flash_func(us_voice_update)(UsVoice* voice) {
-    const int32_t adsr = us_adsr_update(&voice->adsr);
+    const int32_t adsr = 0; // us_adsr_update(&voice->adsr);
     if (us_adsr_is_off(&voice->adsr)) {
         return 0;
     }
@@ -26,7 +26,7 @@ void __not_in_flash_func(us_voice_note_on)(UsVoice* voice, uint32_t channel, uin
     voice->gain = velocity;
     voice->note = note;
     voice->channel = channel;
-    us_adsr_attack(&voice->adsr);
+    us_adsr_attack(&voice->adsr, velocity);
 }
 
 void __not_in_flash_func(us_voice_note_off)(UsVoice* voice, uint32_t velocity) {
