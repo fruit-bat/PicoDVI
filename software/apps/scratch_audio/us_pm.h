@@ -4,7 +4,7 @@
 //
 #include "us_tuner.h"
 #include "us_voices.h"
-#include "us_groups.h"
+#include "us_channels.h"
 
 enum UsPmCommands {
     SynCmdPPQ = 0,
@@ -34,7 +34,7 @@ typedef struct {
     UsPmCursor cursor;  // Cursor into packed midi file
     int32_t ticks;      // Ticks to wait
     UsVoices *voices;   // Something to play music on
-    UsGroups *groups;   // Voice groups
+    UsChannels *channels;   // Voice channels
     UsPmCursor sequence;// Start of the packed midi file
     bool repeat;        // Play over an over
 } UsPmSequencer;
@@ -42,7 +42,7 @@ typedef struct {
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
     UsVoices *voices,
-    UsGroups *groups,
+    UsChannels *channels,
     UsPmCursor sequence,
     bool repeat
 );

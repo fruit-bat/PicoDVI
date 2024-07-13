@@ -46,7 +46,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
     UsPmCursor cursor = sequencer->cursor;   
     if (cursor == NULL) return cursor;
     UsVoices *voices = sequencer->voices;
-    UsGroups *groups = sequencer->groups;
+    UsChannels *channels = sequencer->channels;
     const uint8_t type = *cursor;
     switch(type) {
         case SynCmdPPQ: {
@@ -59,14 +59,14 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             cursor += SynCmdTempoLen;
             break;
         }
-        case SynCmdOn: { // voice, group, key, velociy
+        case SynCmdOn: { // voice, channel, key, velociy
             const uint32_t i = cursor[1];
             const uint32_t g = cursor[2];
             const uint32_t k = cursor[3];
             const uint32_t v = cursor[4];
-            UsGroup *group = us_groups_get(groups, g);
+            UsChannel *channel = us_channels_get(channels, g);
             if (i < US_VOICE_COUNT) {
-                us_voice_note_on(&voices->voice[i], g, k, group->bend, v<<1);
+                us_voice_note_on(&voices->voice[i], g, k, channel->bend, v<<1);
             }
             cursor += SynCmdOnLen;
             break;
@@ -83,11 +83,11 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
         case SynCmdBend: {
             const uint32_t g = cursor[1];
             const int32_t bend = us_pm_int16(cursor + 1);
-            UsGroup *group = us_groups_get(groups, g);
-            group->bend = bend;
+            UsChannel *channel = us_channels_get(channels, g);
+            channel->bend = bend;
             for(uint32_t i = 0; i < US_VOICE_COUNT; ++i) {
                 UsVoice *voice = &voices->voice[i];
-                if (voice->group == g && !us_voice_is_off(voice)) {
+                if (voice->channel == g && !us_voice_is_off(voice)) {
                     us_voice_bend(&voices->voice[i], bend);
                 }
             }
@@ -111,7 +111,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
     UsVoices *voices,
-    UsGroups *groups,
+    UsChannels *channels,
     UsPmCursor sequence,
     bool repeat
 ) {
@@ -123,7 +123,7 @@ void us_pm_sequencer_init(
     sequencer->sequence = sequence;
     sequencer->ticks = 0;
     sequencer->voices = voices;
-    sequencer->groups = groups;
+    sequencer->channels = channels;
     sequencer->repeat = repeat;
 }
 

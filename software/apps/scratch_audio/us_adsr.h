@@ -19,6 +19,7 @@ typedef struct {
 
 typedef struct {
     UsAdsrConfig *config; // ADSR configuration
+    uint32_t velocity;    // the key press velocity
     uint8_t stage;        // the current stage
     UsTuner tuner;        // the current stage timer
     UsWaveFunc wave_func; // the current wave function

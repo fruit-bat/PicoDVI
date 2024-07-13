@@ -4,7 +4,7 @@ void __not_in_flash_func(us_voice_init)(UsVoice* voice, UsWaveFunc wave_func, Us
     voice->wave_func = wave_func;
     voice->gain = 0;
     voice->note = 0;
-    voice->group = 0;
+    voice->channel = 0;
     us_adsr_init(&voice->adsr, adsr_config);
 }
 
@@ -20,12 +20,12 @@ int32_t __not_in_flash_func(us_voice_update)(UsVoice* voice) {
     }
 }
 
-void __not_in_flash_func(us_voice_note_on)(UsVoice* voice, uint32_t group, uint32_t note, int32_t bend, uint32_t velocity) {
+void __not_in_flash_func(us_voice_note_on)(UsVoice* voice, uint32_t channel, uint32_t note, int32_t bend, uint32_t velocity) {
     us_tuner_reset_phase(&voice->tuner); // Set the phase to 0
     us_tuner_set_note(&voice->tuner, note, bend);
     voice->gain = velocity;
     voice->note = note;
-    voice->group = group;
+    voice->channel = channel;
     us_adsr_attack(&voice->adsr);
 }
 

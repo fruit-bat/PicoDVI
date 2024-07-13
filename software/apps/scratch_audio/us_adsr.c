@@ -19,6 +19,7 @@ void __not_in_flash_func(us_adsr_init)(
 ) {
     adsr->stage = UsAdsrStageOff;
     adsr->config = adsr_config;
+    adsr->velocity = 0;
 }
 
 void __not_in_flash_func(us_adsr_attack)(
@@ -66,7 +67,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
             else {
                 adsr->vol = us_adsr_bang_to_wave(adsr);
             }
-            return adsr->vol;
+            return __mul_instruction(adsr->vol, adsr->velocity) >> 8;
         }
         // Decay
         case UsAdsrStageDecay: {
@@ -84,7 +85,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
         }
         // Sustain
         case UsAdsrStageSustain: {
-            return adsr->vol;
+            return __mul_instruction(adsr->vol, adsr->velocity) >> 8;
         }
         // Release
         case UsAdsrStageRelease: {
@@ -98,7 +99,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
                     adsr->stage = UsAdsrStageOff;
                     return 0;
                 }
-                return adsr->vol - d;
+                return __mul_instruction(adsr->vol - d, adsr->velocity) >> 8;
             }
         }
         default: {
