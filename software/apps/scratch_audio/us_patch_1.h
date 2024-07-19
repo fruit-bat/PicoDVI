@@ -7,14 +7,11 @@
 typedef struct {
     UsTuner tuner;
     UsAdsr adsr;
-} UsPatch1;
+} UsPatch1Data;
 
 typedef struct {
     UsAdsrConfig adsr_config;
     UsWaveFunc wave_func;
 } UsPatch1Config;
 
-// TODO how does the config get initialised?
-
-extern UsPatch patch1;
-
+void us_patch_1_apply(UsPatch *patch);

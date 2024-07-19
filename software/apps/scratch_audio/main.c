@@ -17,12 +17,13 @@
 #include "common_dvi_pin_configs.h"
 
 // Music stuff
-#include "us_voices.h"
 #include "us_channels.h"
 #include "us_pm.h"
 #include "us_lpf.h"
 //#include "bach_packed_midi_1.h"
 #include "pitch_bend_packed_midi.h"
+#include "us_patch_1.h"
+
 // End music stuff
 
 #include "font_inv.h"
@@ -62,20 +63,15 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-static UsVoices voices;
+static UsPatch1Data patch1_data[16];
+static UsPatch1Config patch1_config;
 static UsChannels channels;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
-static UsAdsrConfig adsr_config;
 
 void setup_synth() {
-	us_adsr_config_init(&adsr_config);
 	us_channels_init(&channels);
-	us_voices_init(
-		&voices,
-		us_wave_saw, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
-		&adsr_config
-	);
+	us_channel_set_patch(&channels.channel[0], us_patch_1_apply, &patch1_config, &patch1_data, sizeof(UsPatch1Data), 16);
 	us_pm_sequencer_init(&sequencer, &voices, &channels, syn_notes, true);
 	us_lpf_init(&lpf, 25000);
 }
