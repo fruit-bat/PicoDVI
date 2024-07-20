@@ -2,20 +2,27 @@
 #include <pico/stdlib.h>
 #include "us_patch.h"
 #include "us_adsr.h"
+#include "us_uint8_dlist.h"
 
 #define US_MAX_PATCH_PER_CHANNEL 32
 #define US_NOT_A_NOTE 255
 
 typedef struct {
+    UsUint8DlistEntry links;
+    uint8_t note;
+    uint8_t status; // UsPatchState
+} UsChannelPatchState;
+
+typedef struct {
     int32_t bend;
     uint32_t gain;                           // 0 <= Gain <= 256 // TODO Think about this one (0-127 coming from midi files)
-    uint8_t note[US_MAX_PATCH_PER_CHANNEL];  // Remeber the notes that was played so we can stop them
-
+    UsUint8DlistAnchor patch_state_lists[UsPatchStateCount];
     UsPatch patch;
     uint32_t patch_count;
-    void *patch_data; // TODO how does this get set
-    void *patch_config; // TODO how does this get set
-    size_t patch_data_size; // sizeof 1 element
+    void *patch_data;   // Array of patch data containing patch_count elements
+    UsChannelPatchState *patch_state;  // Array of patch state containing patch_count elements
+    void *patch_config; // Single shared patch config structure
+    size_t patch_data_size; // sizeof 1 element of patch_data
     UsPatchCallbacks patch_callbacks;
 } UsChannel;
 
@@ -34,6 +41,7 @@ void us_channel_set_patch(
     UsChannel *channel,
     void (*init_patch)(UsPatch *patch), 
     void * patch_config,
-    void * patch_data, 
-    size_t patch_data_size, 
+    void * patch_data,
+    size_t patch_data_size,
+    UsChannelPatchState *patch_state,
     uint32_t patch_count);

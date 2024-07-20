@@ -7,6 +7,7 @@ add_executable(scratch_audio
 	us_tuner.c
 	us_wave.c
 	us_adsr.c
+	us_uint8_dlist.c
 	us_channel.c
 	us_channels.c
 	us_voice.c

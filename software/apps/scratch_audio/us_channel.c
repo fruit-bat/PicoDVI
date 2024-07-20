@@ -8,7 +8,9 @@ void us_channel_init(UsChannel *channel) {
     channel->patch_callbacks.release = us_channel_patch_cb_release;
 
     for(uint32_t i = 0; i < US_MAX_PATCH_PER_CHANNEL; ++i) {
-        channel->note[i] = US_NOT_A_NOTE;
+        UsChannelPatchState *patch_state = &channel->patch_state[i];
+        patch_state->status = UsPatchStateOff;
+        patch_state->note = US_NOT_A_NOTE;
     }
 }
 
@@ -17,11 +19,13 @@ void us_channel_set_patch(
     void (*init_patch)(UsPatch *patch), 
     void * patch_config,
     void * patch_data, 
-    size_t patch_data_size, 
+    size_t patch_data_size,
+    UsChannelPatchState *patch_state, 
     uint32_t patch_count) {
 
     init_patch(&channel->patch);
     channel->patch_data = patch_data;
+    channel->patch_state = patch_state;
     channel->patch_data_size = patch_data_size;
     channel->patch_count = patch_count;
     channel->patch_config = patch_config;
@@ -30,8 +34,8 @@ void us_channel_set_patch(
 
     uint8_t* data = patch_data;
 
-    for(int32_t i = 0; i < patch_count; ++i) {
-        channel->patch.init(data, patch_config);
+    for(uint32_t i = 0; i < patch_count; ++i) {
+        channel->patch.init_data(data, patch_config);
         data += patch_data_size;
     }
 }
@@ -100,12 +104,44 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
     return out;
 }
 
-void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t id) {
-    UsChannel *channel = (UsChannel *)d;
-    // TODO the voice has been released and could now be re-allocated
+static UsUint8DlistEntry * __not_in_flash_func(get_patch_state_entry)(void* entries, uint8_t index)  {
+    UsChannelPatchState *patch_state = entries;
+    return &patch_state[index].links;
 }
 
-void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t id) {
+void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t i) {
     UsChannel *channel = (UsChannel *)d;
-    // TODO the voice is now off and does not need to be updated
+    UsChannelPatchState *patch_state = &channel->patch_state[i];
+    us_uint8_dlist_unlink(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        i
+    );    
+    patch_state->status = UsPatchStateRelease;
+    us_uint8_dlist_link_head(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        i
+    );
+}
+
+void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t i) {
+    UsChannel *channel = (UsChannel *)d;
+    UsChannelPatchState *patch_state = &channel->patch_state[i];
+    us_uint8_dlist_unlink(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        i
+    );
+    patch_state->status = UsPatchStateOff;
+    patch_state->note = US_NOT_A_NOTE;
+    us_uint8_dlist_link_head(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        i
+    );
 }

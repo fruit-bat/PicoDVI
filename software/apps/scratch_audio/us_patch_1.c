@@ -6,7 +6,7 @@ void init_config(void* config) {
     patch1_config->wave_func = us_wave_saw;
 }
 
-static void init(void* data, void* config) {
+static void init_data(void* data, void* config) {
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;
     UsPatch1Config *patch1_config = (UsPatch1Config*)config;
     us_adsr_init(&patch1_data->adsr, &patch1_config->adsr_config);    
@@ -51,7 +51,7 @@ static int32_t update(void* data, void* config, UsPatchCallbacks* callbacks, voi
 
 void us_patch_1_apply(UsPatch *patch) {
     patch->init_config = init_config;
-    patch->init = init;
+    patch->init_data = init_data;
     patch->note_on = note_on;
     patch->note_off = note_off;
     patch->bend = bend;

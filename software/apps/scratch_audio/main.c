@@ -63,7 +63,9 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-static UsPatch1Data patch1_data[16];
+#define US_PATCH1_COUNT 16
+static UsPatch1Data patch1_data[US_PATCH1_COUNT];
+static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
 static UsChannels channels;
 static UsPmSequencer sequencer;
@@ -71,8 +73,18 @@ static UsLpf lpf;
 
 void setup_synth() {
 	us_channels_init(&channels);
-	us_channel_set_patch(&channels.channel[0], us_patch_1_apply, &patch1_config, &patch1_data, sizeof(UsPatch1Data), 16);
+
+	us_channel_set_patch(
+		&channels.channel[0],
+		us_patch_1_apply,
+		&patch1_config,
+		patch1_data,
+		sizeof(UsPatch1Data),
+		patch1_state,
+		US_PATCH1_COUNT);
+
 	us_pm_sequencer_init(&sequencer, &voices, &channels, syn_notes, true);
+
 	us_lpf_init(&lpf, 25000);
 }
 
