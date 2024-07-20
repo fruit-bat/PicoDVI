@@ -4,8 +4,8 @@
 #include "us_adsr.h"
 #include "us_uint8_dlist.h"
 
-#define US_MAX_PATCH_PER_CHANNEL 32
 #define US_NOT_A_NOTE 255
+#define US_NOTE_COUNT 128
 
 typedef struct {
     UsUint8DlistEntry links;
@@ -14,16 +14,41 @@ typedef struct {
 } UsChannelPatchState;
 
 typedef struct {
+    // Pitch bend is channel wide
     int32_t bend;
-    uint32_t gain;                           // 0 <= Gain <= 256 // TODO Think about this one (0-127 coming from midi files)
+
+    // 0 <= Gain <= 256 // TODO Think about this one (0-127 coming from midi files)
+    uint32_t gain;
+
+    // Three lists are maintained for patch instances (voices) { off, on, released }
     UsUint8DlistAnchor patch_state_lists[UsPatchStateCount];
+
+    // The patch interface
     UsPatch patch;
+
+    // The number of patch instances
     uint32_t patch_count;
-    void *patch_data;   // Array of patch data containing patch_count elements
-    UsChannelPatchState *patch_state;  // Array of patch state containing patch_count elements
-    void *patch_config; // Single shared patch config structure
-    size_t patch_data_size; // sizeof 1 element of patch_data
+
+    // Array of patch data containing patch_count elements
+    // This is for patch specific data
+    void *patch_data;
+
+    // Array of patch state containing patch_count elements
+    // This is the state needed by the channel per patch instance
+    UsChannelPatchState *patch_state;
+
+    // Single shared patch config across all patch instances
+    void *patch_config;
+
+    // sizeof 1 element of patch_data
+    size_t patch_data_size; 
+
+    // Callbacks from the patch to notify the channel of state changes
     UsPatchCallbacks patch_callbacks;
+
+    // An index of note to patch instance
+    uint8_t notes[US_NOTE_COUNT];
+
 } UsChannel;
 
 // Patch callbacks

@@ -6,6 +6,7 @@
 typedef struct {
     uint8_t last;
     uint8_t next;
+    uint8_t self;
 } UsUint8DlistEntry;
 
 typedef struct {
@@ -18,9 +19,10 @@ inline void us_uint8_dlist_anchor_init(UsUint8DlistAnchor *anchor) {
     anchor->tail = US_UINT8_DLIST_NULL;
 }
 
-inline void us_uint8_dlist_entry_init(UsUint8DlistEntry *entry) {
+inline void us_uint8_dlist_entry_init(UsUint8DlistEntry *entry, uint8_t self) {
     entry->last = US_UINT8_DLIST_NULL;
     entry->next = US_UINT8_DLIST_NULL;
+    entry->self = self;
 }
 
 inline void us_uint8_dlist_anchor_init_array(UsUint8DlistAnchor *anchor, uint32_t count) {
@@ -31,7 +33,7 @@ inline void us_uint8_dlist_anchor_init_array(UsUint8DlistAnchor *anchor, uint32_
 
 inline void us_uint8_dlist_entry_init_array(UsUint8DlistEntry *entry, uint32_t count) {
     for(uint32_t i = 0; i < count; ++i) {
-       us_uint8_dlist_entry_init(&entry[i]);
+       us_uint8_dlist_entry_init(&entry[i], i);
     }
 }
 
@@ -62,7 +64,8 @@ inline void us_uint8_dlist_unlink(
     }
 
     // Not strictly necessary, but tidy
-    us_uint8_dlist_entry_init(entry);
+    entry->next = US_UINT8_DLIST_NULL;
+    entry->last = US_UINT8_DLIST_NULL;
 }
 
 inline void us_uint8_dlist_link_head(
@@ -81,4 +84,10 @@ inline void us_uint8_dlist_link_head(
     if (anchor->tail == US_UINT8_DLIST_NULL) {
         anchor->tail = index;
     }
+}
+
+inline bool us_uint8_dlist_is_empty(
+    UsUint8DlistAnchor *anchor
+) {
+    return anchor->tail == US_UINT8_DLIST_NULL;
 }

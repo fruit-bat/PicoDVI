@@ -18,7 +18,7 @@ typedef struct {
     void (*init_config)(void* config);
     void (*init_data)(void* data, void* config);
     void (*note_on)(void* data, uint32_t note, int32_t bend, uint32_t velocity);
-    void (*note_off)(void* data, uint32_t velocity);
+    void (*note_off)(void* data, uint32_t velocity); // This is a release TODO rename
     void (*bend)(void* data, uint32_t note, int32_t bend);
     int32_t (*update)(void* data, void* config, UsPatchCallbacks* callbacks, void *callback_data, uint32_t callback_id);
 } UsPatch;

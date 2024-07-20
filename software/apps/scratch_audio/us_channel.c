@@ -1,18 +1,21 @@
 #include "us_channel.h"
 
+static UsUint8DlistEntry * __not_in_flash_func(get_patch_state_entry)(void* entries, uint8_t patch_index)  {
+    UsChannelPatchState *patch_state = entries;
+    return &patch_state[patch_index].links;
+}
+
+inline void* get_patch_data(UsChannel *channel, uint8_t patch_index) {
+    uint8_t* patch_data = channel->patch_data;
+    return patch_data + (channel->patch_data_size * patch_index);  
+}
+
 void us_channel_init(UsChannel *channel) {
     channel->bend = 0;
     channel->gain = 256; // Full volume
     channel->patch_count = 0;
     channel->patch_callbacks.off = us_channel_patch_cb_off;
     channel->patch_callbacks.release = us_channel_patch_cb_release;
-
-    for(uint32_t i = 0; i < US_MAX_PATCH_PER_CHANNEL; ++i) {
-        UsChannelPatchState *patch_state = &channel->patch_state[i];
-        patch_state->status = UsPatchStateOff;
-        patch_state->note = US_NOT_A_NOTE;
-        us_uint8_dlist_entry_init(&patch_state->links);
-    }
 }
 
 void us_channel_set_patch(
@@ -33,118 +36,196 @@ void us_channel_set_patch(
 
     channel->patch.init_config(patch_config);
 
-    uint8_t* data = patch_data;
+    us_uint8_dlist_anchor_init_array(channel->patch_state_lists, UsPatchStateCount);
 
-    for(uint32_t i = 0; i < patch_count; ++i) {
+    uint8_t* data = patch_data;
+    UsUint8DlistAnchor *patch_state_list_off = &channel->patch_state_lists[UsPatchStateOff];
+
+    for(uint32_t patch_index = 0; patch_index < patch_count; ++patch_index) {
         channel->patch.init_data(data, patch_config);
         data += patch_data_size;
+
+        UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+
+        patch_state->status = UsPatchStateOff;
+        patch_state->note = US_NOT_A_NOTE;
+
+        us_uint8_dlist_entry_init(
+            &patch_state->links,
+            patch_index);
+
+        us_uint8_dlist_link_head(
+            patch_state_list_off,
+            channel->patch_state,
+            get_patch_state_entry,
+            patch_index
+        );
     }
 
-    us_uint8_dlist_anchor_init_array(channel->patch_state_lists, UsPatchStateCount);
-}
-
-void us_channel_note_on(UsChannel* channel, uint32_t note, uint32_t velocity) {
-    const UsPatch *patch = &channel->patch;
-    if (patch) {
-        uint8_t* d = channel->patch_data;
-        uint32_t s = channel->patch_data_size;
-        for (uint32_t i = 0; i < channel->patch_count; ++i) {        
-    //      if (patch->is_off(d)) {
-                channel->note[i] = (uint8_t)note;
-                patch->note_on(d, note, channel->bend, velocity);
-        //    }
-            d += s;
-        }
+    for(uint32_t note_index = 0; note_index < US_NOTE_COUNT; ++note_index) {
+        channel->notes[note_index] = US_NOT_A_NOTE;
     }
 }
 
-void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
-    const UsPatch *patch = &channel->patch;
-    if (patch) {
-        uint8_t* d = channel->patch_data;
-        uint32_t s = channel->patch_data_size;
-        for (uint32_t i = 0; i < channel->patch_count; ++i) {        
-            if (channel->note[i] == (uint8_t)note) {
-                patch->note_off(d, velocity);
-                channel->note[i] = US_NOT_A_NOTE;
+static UsChannelPatchState * __not_in_flash_func(us_channel_relink_patch_state)(
+    UsChannel* channel,
+    uint8_t patch_index,
+    uint8_t patch_status
+) {
+    UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+    us_uint8_dlist_unlink(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        patch_index
+    );
+    patch_state->status = patch_status;
+    us_uint8_dlist_link_head(
+        &channel->patch_state_lists[patch_state->status],
+        channel->patch_state,
+        get_patch_state_entry,
+        patch_index
+    );
+    return patch_state;
+}
+
+void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, uint32_t velocity) {
+    if (channel->patch_count) {
+        uint8_t patch_index = channel->notes[note];
+        if (patch_index == US_NOT_A_NOTE)
+        {
+            UsUint8DlistAnchor *patch_state_list_off = &channel->patch_state_lists[UsPatchStateOff];
+            if (us_uint8_dlist_is_empty(patch_state_list_off)) {
+                UsUint8DlistAnchor *patch_state_list_release = &channel->patch_state_lists[UsPatchStateRelease];
+                if (us_uint8_dlist_is_empty(patch_state_list_release)) {
+                    // Failure to allocate the note to a patch instance
+                    return;
+                }
+                else {
+                    patch_index = patch_state_list_release->tail;                
+                }
+            } 
+            else {
+                patch_index = patch_state_list_off->tail;
             }
-            d += s;
+        }
+        channel->notes[note] = patch_index;
+
+        // Move the patch instance into the 'on' list
+        us_channel_relink_patch_state(
+            channel,
+            patch_index,
+            UsPatchStateOn
+        )->note = note;
+
+        // Tell the patch to turn on a note
+        channel->patch.note_on(
+            get_patch_data(channel, patch_index),
+            note, 
+            channel->bend, 
+            velocity
+        );
+    }
+}
+
+// This is a release TODO rename
+void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
+    if (channel->patch_count) {
+        uint8_t patch_index = channel->notes[note];
+        if (patch_index == US_NOT_A_NOTE)
+        {
+            UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+            if (patch_state->note == note) {
+
+                // This is a release TODO rename
+                channel->patch.note_off(
+                    get_patch_data(channel, patch_index),
+                    velocity
+                );
+
+                us_channel_relink_patch_state(
+                    channel,
+                    patch_index,
+                    UsPatchStateRelease
+                );             
+            }
+            else {
+                // TODO something has gone wrong with our indexing
+                // ...
+            }
         }
     }
 }
 
 void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
-    const UsPatch *patch = &channel->patch;
-    if (patch) {
+    if (channel->patch_count) {
         // TODO
     }
 }
 
 int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
     int32_t out = 0;
-    const UsPatch *patch = &channel->patch;
-    if (patch) {
-        const uint32_t patch_count = channel->patch_count;
-        uint8_t* data = channel->patch_data;
-        uint32_t s = channel->patch_data_size;
+    if (channel->patch_count) {
         UsPatchCallbacks *patch_callbacks = &channel->patch_callbacks;
         void* config = channel->patch_config;
 
-        for(int32_t i = 0; i < patch_count; ++i) {
-            out += patch->update(
-                data,            // The data the patch needs to function
-                config,          // The config common to all voices with this patch
-                patch_callbacks, // Callbacks so the patch can report its state back to the channel
-                channel,         // The channel data to be used in the patch callbacks
-                i                // The patch index for use in the callback
-            );
-            data += s;
+        // Update all of the patch instances on the 'release' list
+        {
+            uint8_t patch_index = channel->patch_state_lists[UsPatchStateRelease].head;
+            while(patch_index != US_UINT8_DLIST_NULL) {
+                out += channel->patch.update(
+                    get_patch_data(channel, patch_index), // The data the patch needs to function
+                    config,          // The config common to all voices with this patch
+                    patch_callbacks, // Callbacks so the patch can report its state back to the channel
+                    channel,         // The channel data to be used in the patch callbacks
+                    patch_index      // The patch index for use in the callback
+                );
+                patch_index = channel->patch_state[patch_index].links.next;
+            }
         }
 
+        // Update all of the patch instances on the 'on'' list
+        {
+            uint8_t patch_index = channel->patch_state_lists[UsPatchStateOn].head;
+            while(patch_index != US_UINT8_DLIST_NULL) {
+                out += channel->patch.update(
+                    get_patch_data(channel, patch_index), // The data the patch needs to function
+                    config,          // The config common to all voices with this patch
+                    patch_callbacks, // Callbacks so the patch can report its state back to the channel
+                    channel,         // The channel data to be used in the patch callbacks
+                    patch_index      // The patch index for use in the callback
+                );
+                patch_index = channel->patch_state[patch_index].links.next;
+            }
+        }
+        // TODO should probably clip after applying gain ??
         if (out > 32767) return 32767;
         if (out < -32768) return -32768;
     }
     return out;
 }
 
-static UsUint8DlistEntry * __not_in_flash_func(get_patch_state_entry)(void* entries, uint8_t index)  {
-    UsChannelPatchState *patch_state = entries;
-    return &patch_state[index].links;
-}
-
-void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t i) {
+// Optional callback
+void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t patch_index) {
     UsChannel *channel = (UsChannel *)d;
-    UsChannelPatchState *patch_state = &channel->patch_state[i];
-    us_uint8_dlist_unlink(
-        &channel->patch_state_lists[patch_state->status],
-        channel->patch_state,
-        get_patch_state_entry,
-        i
-    );    
-    patch_state->status = UsPatchStateRelease;
-    us_uint8_dlist_link_head(
-        &channel->patch_state_lists[patch_state->status],
-        channel->patch_state,
-        get_patch_state_entry,
-        i
+    // Move the patch instance into the 'release' list
+    us_channel_relink_patch_state(
+        channel,
+        patch_index,
+        UsPatchStateRelease
     );
 }
 
-void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t i) {
+// Mandatory callback
+void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t patch_index) {
     UsChannel *channel = (UsChannel *)d;
-    UsChannelPatchState *patch_state = &channel->patch_state[i];
-    us_uint8_dlist_unlink(
-        &channel->patch_state_lists[patch_state->status],
-        channel->patch_state,
-        get_patch_state_entry,
-        i
+    // Move the patch instance into the 'off' list
+    us_channel_relink_patch_state(
+        channel,
+        patch_index,
+        UsPatchStateOff
     );
-    patch_state->status = UsPatchStateOff;
+    UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+    channel->notes[patch_state->note] = US_NOT_A_NOTE;
     patch_state->note = US_NOT_A_NOTE;
-    us_uint8_dlist_link_head(
-        &channel->patch_state_lists[patch_state->status],
-        channel->patch_state,
-        get_patch_state_entry,
-        i
-    );
 }
