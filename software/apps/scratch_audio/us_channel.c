@@ -220,12 +220,11 @@ void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t patch_in
 void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t patch_index) {
     UsChannel *channel = (UsChannel *)d;
     // Move the patch instance into the 'off' list
-    us_channel_relink_patch_state(
+    UsChannelPatchState *patch_state = us_channel_relink_patch_state(
         channel,
         patch_index,
         UsPatchStateOff
     );
-    UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
     channel->notes[patch_state->note] = US_NOT_A_NOTE;
     patch_state->note = US_NOT_A_NOTE;
 }

@@ -6,7 +6,7 @@
 typedef struct {
     uint8_t last;
     uint8_t next;
-    uint8_t self;
+    uint8_t self; // TODO remove ??
 } UsUint8DlistEntry;
 
 typedef struct {
