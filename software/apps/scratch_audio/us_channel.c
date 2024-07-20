@@ -11,6 +11,7 @@ void us_channel_init(UsChannel *channel) {
         UsChannelPatchState *patch_state = &channel->patch_state[i];
         patch_state->status = UsPatchStateOff;
         patch_state->note = US_NOT_A_NOTE;
+        us_uint8_dlist_entry_init(&patch_state->links);
     }
 }
 
@@ -38,6 +39,8 @@ void us_channel_set_patch(
         channel->patch.init_data(data, patch_config);
         data += patch_data_size;
     }
+
+    us_uint8_dlist_anchor_init_array(channel->patch_state_lists, UsPatchStateCount);
 }
 
 void us_channel_note_on(UsChannel* channel, uint32_t note, uint32_t velocity) {
