@@ -108,11 +108,20 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
                     return;
                 }
                 else {
-                    patch_index = patch_state_list_release->tail;                
+                    patch_index = patch_state_list_release->tail;
+                    channel->notes[channel->patch_state[patch_index].note] = US_NOT_A_NOTE;
                 }
             } 
             else {
                 patch_index = patch_state_list_off->tail;
+            }
+        }
+        else {
+            // Check this is the note we think it is
+            uint8_t patch_note = channel->patch_state[patch_index].note;
+            if (patch_note != note) {
+                US_DEBUG("US_CHANNEL: ERROR allocating note %lu on patch %u, expected note %u\n", note, patch_index, patch_note);
+                return;
             }
         }
 
@@ -163,7 +172,7 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
             else {
                 // TODO something has gone wrong with our indexing
                 // ...
-                US_DEBUG("US_CHANNEL: releasing note error %lu on patch %u\n", note, patch_index);
+                US_DEBUG("US_CHANNEL: ERROR releasing note %lu on patch %u, expected note %u\n", note, patch_index, patch_state->note);
 
             }
         }
