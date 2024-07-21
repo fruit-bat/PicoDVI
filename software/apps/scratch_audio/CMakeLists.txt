@@ -35,7 +35,7 @@ target_link_libraries(scratch_audio
 	libdvi
 )
 
-# pico_enable_stdio_uart(scratch_audio 1)
+pico_enable_stdio_uart(scratch_audio 1)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(scratch_audio)

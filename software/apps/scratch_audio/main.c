@@ -20,8 +20,8 @@
 #include "us_channels.h"
 #include "us_pm.h"
 #include "us_lpf.h"
-//#include "bach_packed_midi_1.h"
-#include "pitch_bend_packed_midi.h"
+#include "bach_packed_midi_1.h"
+//#include "pitch_bend_packed_midi.h"
 #include "us_patch_1.h"
 
 // End music stuff
@@ -63,7 +63,7 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-#define US_PATCH1_COUNT 16
+#define US_PATCH1_COUNT 1
 static UsPatch1Data patch1_data[US_PATCH1_COUNT];
 static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
@@ -83,7 +83,7 @@ void setup_synth() {
 		patch1_state,
 		US_PATCH1_COUNT);
 
-	us_pm_sequencer_init(&sequencer, &voices, &channels, syn_notes, true);
+	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
 
 	us_lpf_init(&lpf, 25000);
 }
@@ -97,7 +97,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {
 			us_pm_sequencer_update(&sequencer);
-			const int32_t v = us_voices_update(&voices);
+			const int32_t v = 0; // TODO
 			const int16_t s = (int16_t)us_lpf_sample(&lpf, v);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
@@ -891,7 +891,7 @@ int __not_in_flash_func(main)() {
 	// Run system at TMDS bit clock
 	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
 
-	// setup_default_uart();
+	setup_default_uart();
 
 	dvi0.timing = &DVI_TIMING;
 	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;

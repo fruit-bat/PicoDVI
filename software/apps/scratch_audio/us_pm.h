@@ -3,7 +3,6 @@
 // MicroSynth PackedMidi 
 //
 #include "us_tuner.h"
-#include "us_voices.h"
 #include "us_channels.h"
 
 enum UsPmCommands {
@@ -19,8 +18,8 @@ enum UsPmCommands {
 enum UsPmCommandLen {
     SynCmdPPQLen = 3,
     SynCmdTempoLen = 4,
-    SynCmdOnLen = 5,
-    SynCmdOffLen = 3,
+    SynCmdOnLen = 4,
+    SynCmdOffLen = 4,
     SynCmdBendLen = 4,
     SynCmdTimeLen = 3,
     SynCmdEndLen = 1
@@ -33,7 +32,6 @@ typedef struct {
     uint32_t tempo;     // Micro seconds per quarter beat (us)
     UsPmCursor cursor;  // Cursor into packed midi file
     int32_t ticks;      // Ticks to wait
-    UsVoices *voices;   // Something to play music on
     UsChannels *channels;   // Voice channels
     UsPmCursor sequence;// Start of the packed midi file
     bool repeat;        // Play over an over
@@ -41,7 +39,6 @@ typedef struct {
 
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
-    UsVoices *voices,
     UsChannels *channels,
     UsPmCursor sequence,
     bool repeat

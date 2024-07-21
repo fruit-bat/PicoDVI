@@ -35,7 +35,7 @@ public class MidiPacker implements Syn {
         final Voice voice = _voicesOff.removeLast();
         voice.assign(group);
         voice.on(key);
-        _writer.writeVoiceOn(voice.index(), group.id(), key, velocity);
+        _writer.writeVoiceOn(channel, key, velocity);
         _keys[key] = (char)('0' + voice.index());
         _voicesOn.add(voice);
         final int voiceOnCount = _voicesOn.size();
@@ -50,7 +50,7 @@ public class MidiPacker implements Syn {
                 it.remove();
                 _keys[key] = '-';
                 _voicesOff.addFirst(voice);
-                _writer.writeVoiceOff(voice.index(), velocity);
+                _writer.writeVoiceOff(channel, key, velocity);
                 break;
             }
         }
