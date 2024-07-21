@@ -170,10 +170,8 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
                 );             
             }
             else {
-                // TODO something has gone wrong with our indexing
-                // ...
+                // Something has gone wrong with our indexing
                 US_DEBUG("US_CHANNEL: ERROR releasing note %lu on patch %u, expected note %u\n", note, patch_index, patch_state->note);
-
             }
         }
     }
@@ -195,6 +193,7 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
         {
             uint8_t patch_index = channel->patch_state_lists[UsPatchStateRelease].head;
             while(patch_index != US_UINT8_DLIST_NULL) {
+                uint8_t patch_index_next = channel->patch_state[patch_index].links.next;
                 out += channel->patch.update(
                     get_patch_data(channel, patch_index), // The data the patch needs to function
                     config,          // The config common to all voices with this patch
@@ -202,7 +201,7 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
                     channel,         // The channel data to be used in the patch callbacks
                     patch_index      // The patch index for use in the callback
                 );
-                patch_index = channel->patch_state[patch_index].links.next;
+                patch_index = patch_index_next;
             }
         }
 
@@ -210,14 +209,15 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
         {
             uint8_t patch_index = channel->patch_state_lists[UsPatchStateOn].head;
             while(patch_index != US_UINT8_DLIST_NULL) {
-                out += channel->patch.update(
+               uint8_t patch_index_next = channel->patch_state[patch_index].links.next;
+               out += channel->patch.update(
                     get_patch_data(channel, patch_index), // The data the patch needs to function
                     config,          // The config common to all voices with this patch
                     patch_callbacks, // Callbacks so the patch can report its state back to the channel
                     channel,         // The channel data to be used in the patch callbacks
                     patch_index      // The patch index for use in the callback
                 );
-                patch_index = channel->patch_state[patch_index].links.next;
+                patch_index = patch_index_next;
             }
         }
         // TODO should probably clip after applying gain ??

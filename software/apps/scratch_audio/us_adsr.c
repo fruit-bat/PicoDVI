@@ -95,7 +95,7 @@ int32_t __not_in_flash_func(us_adsr_update)(
         }
         // Pre Release
         case UsAdsrStagePreRelease: {
-            if (callbacks) callbacks->release(callback_data, callback_id);
+            // if (callbacks) callbacks->release(callback_data, callback_id);
             adsr->stage = UsAdsrStageRelease;
             // Should drop through into release
         }

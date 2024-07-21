@@ -63,7 +63,7 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-#define US_PATCH1_COUNT 1
+#define US_PATCH1_COUNT 16
 static UsPatch1Data patch1_data[US_PATCH1_COUNT];
 static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
@@ -95,9 +95,8 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		if (size == 0) return true;
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
-		for (int cnt = 0; cnt < size; cnt++) {
-			us_pm_sequencer_update(&sequencer);
-			const int32_t v = 0; // TODO
+		for (int cnt = 0; cnt < size; cnt++) {	
+			const int32_t v = us_pm_sequencer_update(&sequencer);
 			const int16_t s = (int16_t)us_lpf_sample(&lpf, v);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
