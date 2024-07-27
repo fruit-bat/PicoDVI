@@ -42,18 +42,18 @@ inline static void clear_sprite_collisions() {
 }
 
 void init_sprite(
-	int i,
-	int32_t x,
-	int32_t y,
-	uint32_t w,
-	uint32_t h,
-	uint32_t f,
-	void *d1, 
-	void *d2,
-	SpriteRenderer r,
-    SpriteCollisionMask m
+	const int i,
+	const int32_t x,
+	const int32_t y,
+	const uint32_t w,
+	const uint32_t h,
+	const uint32_t f,
+	void * const d1, 
+	void * const d2,
+	const SpriteRenderer r,
+    const SpriteCollisionMask m
 ) {
-	Sprite *s = &_sprites[i];
+	Sprite * const s = &_sprites[i];
 	s->x = x;
 	s->y = y;
 	s->w = w;
@@ -68,12 +68,12 @@ void init_sprite(
 // ----------------------------------------------------------------------------
 
 static inline void render_row_mono(
-	uint32_t *dr,
-	uint32_t *dg,
-	uint32_t *db,
-	uint32_t bgr,
-	uint32_t bgg,
-	uint32_t bgb
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const uint32_t bgr,
+	const uint32_t bgg,
+	const uint32_t bgb
 ) {
     const uint32_t r = tmds_table[bgr];
     const uint32_t g = tmds_table[bgg];
@@ -226,10 +226,10 @@ inline static void __not_in_flash_func(render_row_text_8_p1)(
 	const uint32_t v = w >> 2;
 	for(uint32_t i = 0; i < v; ++i) {
 		const uint32_t q = i << 2;
-		const uint8_t d1 = font_8x8[r + ((s[q] -  32) << 3)];
-		const uint8_t d2 = font_8x8[r + ((s[q+1] -  32) << 3)];
-		const uint8_t d3 = font_8x8[r + ((s[q+2] -  32) << 3)];
-		const uint8_t d4 = font_8x8[r + ((s[q+3] -  32) << 3)];
+		const uint8_t d1 = font_8x8[r + (s[q]   << 3)];
+		const uint8_t d2 = font_8x8[r + (s[q+1] << 3)];
+		const uint8_t d3 = font_8x8[r + (s[q+2] << 3)];
+		const uint8_t d4 = font_8x8[r + (s[q+3] << 3)];
 		const uint32_t g = (((uint32_t)d1) << 24) | (((uint32_t)d2) << 16) | (((uint32_t)d3) << 8) | d4;
 		render_row_n_p1(
 			g,
@@ -242,7 +242,7 @@ inline static void __not_in_flash_func(render_row_text_8_p1)(
 		);
 	}
 	for(uint32_t i = w & -4; i < w; ++i) {
-		const uint8_t d = font_8x8[r + ((s[i] -  32) << 3)];
+		const uint8_t d = font_8x8[r + (s[i] << 3)];
 		render_row_n_p1(
 			d,
 			p,

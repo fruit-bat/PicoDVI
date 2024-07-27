@@ -69,16 +69,16 @@ typedef struct Sprite {
 void init_sprites();
 
 void init_sprite(
-	int i,
-	int32_t x,
-	int32_t y,
-	uint32_t w,
-	uint32_t h,
-	uint32_t f,
-	void *d1, 
-	void *d2,
-	SpriteRenderer r,
-    SpriteCollisionMask m
+	const int i,
+	const int32_t x,
+	const int32_t y,
+	const uint32_t w,
+	const uint32_t h,
+	const uint32_t f,
+	void * const d1, 
+	void * const d2,
+	const SpriteRenderer r,
+    const SpriteCollisionMask m
 );
 
 void sprite_renderer_sprite_16x8_p1(
