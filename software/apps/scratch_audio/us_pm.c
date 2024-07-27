@@ -1,4 +1,5 @@
 #include "us_pm.h"
+#include "us_debug.h"
 
 
 // TODO From synth_tone-tables.h 
@@ -45,8 +46,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 ) {
     UsPmCursor cursor = sequencer->cursor;   
     if (cursor == NULL) return cursor;
-    UsVoices *voices = sequencer->voices;
-    UsGroups *groups = sequencer->groups;
+    UsChannels *channels = sequencer->channels;
     const uint8_t type = *cursor;
     switch(type) {
         case SynCmdPPQ: {
@@ -59,38 +59,46 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
             cursor += SynCmdTempoLen;
             break;
         }
-        case SynCmdOn: { // voice, group, key, velociy
-            const uint32_t i = cursor[1];
-            const uint32_t g = cursor[2];
-            const uint32_t k = cursor[3];
-            const uint32_t v = cursor[4];
-            UsGroup *group = us_groups_get(groups, g);
-            if (i < US_VOICE_COUNT) {
-                us_voice_note_on(&voices->voice[i], g, k, group->bend, v<<1);
-            }
+        case SynCmdOn: { // channel, key, velociy
+            const uint32_t c = cursor[1];
+            const uint32_t k = cursor[2];
+            const uint32_t v = cursor[3];
+
+            US_DEBUG("US_PM: channel %ld, note on %ld, velocity %ld\n", c, k, v);
+
+            UsChannel *channel = us_channels_get(channels, c);
+
+            us_channel_note_on(channel, k, v);
+
             cursor += SynCmdOnLen;
             break;
         }
         case SynCmdOff: {
-            const uint32_t i = cursor[1];
-            const uint32_t v = cursor[3];            
-            if (i < US_VOICE_COUNT) {
-                us_voice_note_off(&voices->voice[i], v<<1);
-            }
+            const uint32_t c = cursor[1];
+            const uint32_t k = cursor[2];
+            const uint32_t v = cursor[3];
+
+            US_DEBUG("US_PM: channel %ld, note off %ld, velocity %ld\n", c, k, v);
+
+            UsChannel *channel = us_channels_get(channels, c);
+
+            us_channel_note_off(channel, k, v);
+
             cursor += SynCmdOffLen;
             break;
         }
         case SynCmdBend: {
-            const uint32_t g = cursor[1];
+            const uint32_t c = cursor[1];
             const int32_t bend = us_pm_int16(cursor + 1);
-            UsGroup *group = us_groups_get(groups, g);
-            group->bend = bend;
-            for(uint32_t i = 0; i < US_VOICE_COUNT; ++i) {
-                UsVoice *voice = &voices->voice[i];
-                if (voice->group == g && !us_voice_is_off(voice)) {
-                    us_voice_bend(&voices->voice[i], bend);
-                }
-            }
+
+            US_DEBUG("US_PM: channel %ld, bend %ld\n", c, bend);
+
+            UsChannel *channel = us_channels_get(channels, c);
+
+            channel->bend = bend;
+
+            us_channel_bend(channel, bend);
+
             cursor += SynCmdBendLen;
             break;
         }        
@@ -110,8 +118,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 
 void us_pm_sequencer_init(
     UsPmSequencer *sequencer,
-    UsVoices *voices,
-    UsGroups *groups,
+    UsChannels *channels,
     UsPmCursor sequence,
     bool repeat
 ) {
@@ -122,16 +129,15 @@ void us_pm_sequencer_init(
     sequencer->cursor = sequence;
     sequencer->sequence = sequence;
     sequencer->ticks = 0;
-    sequencer->voices = voices;
-    sequencer->groups = groups;
+    sequencer->channels = channels;
     sequencer->repeat = repeat;
 }
 
 // Called every sample
-void __not_in_flash_func(us_pm_sequencer_update)(
+int32_t __not_in_flash_func(us_pm_sequencer_update)(
     UsPmSequencer *sequencer
 ) {
-    if (sequencer->cursor == NULL) return;
+    if (sequencer->cursor == NULL) return 0;
     us_tuner_rotate(&sequencer->clock);
     while (sequencer->clock.bang > sequencer->tempo) {
         --sequencer->ticks;
@@ -140,4 +146,5 @@ void __not_in_flash_func(us_pm_sequencer_update)(
     while (sequencer->ticks <= 0 && sequencer->cursor != NULL) {
         sequencer->cursor = us_pm_step(sequencer);
     }
+    return us_channels_update(sequencer->channels);
 }

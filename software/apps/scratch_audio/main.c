@@ -17,12 +17,13 @@
 #include "common_dvi_pin_configs.h"
 
 // Music stuff
-#include "us_voices.h"
-#include "us_groups.h"
+#include "us_channels.h"
 #include "us_pm.h"
 #include "us_lpf.h"
-//#include "bach_packed_midi_1.h"
-#include "pitch_bend_packed_midi.h"
+#include "bach_packed_midi_1.h"
+//#include "pitch_bend_packed_midi.h"
+#include "us_patch_1.h"
+
 // End music stuff
 
 #include "font_inv.h"
@@ -62,21 +63,28 @@ static const uint32_t __scratch_x("tmds_table") tmds_table[] = {
 #include "tmds_table.h"
 };
 
-static UsVoices voices;
-static UsGroups groups;
+#define US_PATCH1_COUNT 16
+static UsPatch1Data patch1_data[US_PATCH1_COUNT];
+static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
+static UsPatch1Config patch1_config;
+static UsChannels channels;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
-static UsAdsrConfig adsr_config;
 
 void setup_synth() {
-	us_adsr_config_init(&adsr_config);
-	us_groups_init(&groups);
-	us_voices_init(
-		&voices,
-		us_wave_saw, /* us_wave_not_square_lerp us_wave_ramp_up us_wave_square us_wave_sin us_wave_saw us_wave_sin_lerp */
-		&adsr_config
-	);
-	us_pm_sequencer_init(&sequencer, &voices, &groups, syn_notes, true);
+	us_channels_init(&channels);
+
+	us_channel_set_patch(
+		&channels.channel[0],
+		us_patch_1_apply,
+		&patch1_config,
+		patch1_data,
+		sizeof(UsPatch1Data),
+		patch1_state,
+		US_PATCH1_COUNT);
+
+	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
+
 	us_lpf_init(&lpf, 25000);
 }
 
@@ -87,9 +95,8 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		if (size == 0) return true;
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
-		for (int cnt = 0; cnt < size; cnt++) {
-			us_pm_sequencer_update(&sequencer);
-			const int32_t v = us_voices_update(&voices);
+		for (int cnt = 0; cnt < size; cnt++) {	
+			const int32_t v = us_pm_sequencer_update(&sequencer);
 			const int16_t s = (int16_t)us_lpf_sample(&lpf, v);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
@@ -883,7 +890,7 @@ int __not_in_flash_func(main)() {
 	// Run system at TMDS bit clock
 	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
 
-	// setup_default_uart();
+	setup_default_uart();
 
 	dvi0.timing = &DVI_TIMING;
 	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;

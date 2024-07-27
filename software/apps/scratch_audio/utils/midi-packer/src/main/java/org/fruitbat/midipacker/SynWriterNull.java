@@ -7,11 +7,11 @@ public class SynWriterNull implements SynWriter {
     }
 
     @Override
-    public void writeVoiceOn(int index, int group, int key, int velocity) {
+    public void writeVoiceOn(final int channel, final int key, final int velocity) {
     }
 
     @Override
-    public void writeVoiceOff(int index, int velocity) {
+    public void writeVoiceOff(final int channel, final int key, final int velocity) {
     }
 
     @Override
