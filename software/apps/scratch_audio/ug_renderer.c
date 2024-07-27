@@ -411,24 +411,24 @@ inline void __not_in_flash_func(text_renderer_8x8_p1)(
 	);
 }
 
-inline void __not_in_flash_func(render_Tile16x16p2)(
-	Tile16x16p2_t *t,
-	Pallet2_t *p,
-	uint32_t *dr,
-	uint32_t *dg,
-	uint32_t *db,
-	int32_t tdmsI,
-	int32_t row
+void __not_in_flash_func(render_Tile16x16p2)(
+	const Tile16x16p2_t *t,
+	const Pallet2_t *p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row
 ) {
 	uint16_t d = t->d[row];
-	uint32_t bgr = p->r[0];
-	uint32_t fgr = p->r[1];
-	uint32_t bgg = p->g[0];
-	uint32_t fgg = p->g[1];
-	uint32_t bgb = p->b[0];
-	uint32_t fgb = p->b[1];
+	const uint32_t bgr = p->r[0];
+	const uint32_t fgr = p->r[1];
+	const uint32_t bgg = p->g[0];
+	const uint32_t fgg = p->g[1];
+	const uint32_t bgb = p->b[0];
+	const uint32_t fgb = p->b[1];
 	for(int32_t i = 0; i < 16; i++) {
-		int32_t j = tdmsI + i;
+		const int32_t j = tdmsI + i;
 		if (d & (1<<15)) {
 			dr[j] = tmds_table[fgr];
 			dg[j] = tmds_table[fgg];
@@ -466,7 +466,7 @@ inline void __not_in_flash_func(sprite_renderer_altx_16x8_p1)(
 	);
 }
 
-void __not_in_flash_func(core1_render_loop)(struct dvi_inst *dvi0) {
+void __not_in_flash_func(core1_render_loop)(struct dvi_inst * const dvi0) {
 	uint32_t frames = 0;
 	while (true) {
 		clear_sprite_collisions();
@@ -474,9 +474,9 @@ void __not_in_flash_func(core1_render_loop)(struct dvi_inst *dvi0) {
 			uint32_t *tmdsbuf;
 			clear_sprite_id_row();
 			queue_remove_blocking(&dvi0->q_tmds_free, &tmdsbuf);
-			uint32_t *db = tmdsbuf;
-			uint32_t *dg = db + FRAME_WIDTH;
-			uint32_t *dr = dg + FRAME_WIDTH;
+			uint32_t * const db = tmdsbuf;
+			uint32_t * const dg = db + FRAME_WIDTH;
+			uint32_t * const dr = dg + FRAME_WIDTH;
 
 			// Render a blank row
 			// TODO optionally render a tiled background

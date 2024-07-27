@@ -314,9 +314,9 @@ void __not_in_flash_func(core1_main)() {
 }
 
 void core1_render_inter_frame(
-	uint32_t frames,
-	Sprite *sprites,
-	SpriteCollisions *spriteCollisions
+	const uint32_t frames,
+	Sprite * const sprites,
+	const SpriteCollisions *spriteCollisions
 ) {
 
 	// Just messing about - start

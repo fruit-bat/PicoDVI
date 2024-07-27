@@ -126,13 +126,13 @@ void text_renderer_8x8_p1(
 );
 
 void render_Tile16x16p2(
-	Tile16x16p2_t *t,
-	Pallet2_t *p,
-	uint32_t *dr,
-	uint32_t *dg,
-	uint32_t *db,
-	int32_t tdmsI,
-	int32_t row
+	const Tile16x16p2_t *t,
+	const Pallet2_t *p,
+	uint32_t * const dr,
+	uint32_t * const dg,
+	uint32_t * const db,
+	const int32_t tdmsI,
+	const int32_t row
 );
 
 void sprite_renderer_altx_16x8_p1(
@@ -149,7 +149,7 @@ void sprite_renderer_altx_16x8_p1(
 void core1_render_loop(struct dvi_inst *dvi0);
 
 void core1_render_inter_frame(
-	uint32_t frames,
-	Sprite *sprites,
-	SpriteCollisions *spriteCollisions
+	const uint32_t frames,
+	Sprite * const sprites,
+	const SpriteCollisions *spriteCollisions
 );
