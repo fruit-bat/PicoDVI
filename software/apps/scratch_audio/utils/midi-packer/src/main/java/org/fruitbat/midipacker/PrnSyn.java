@@ -29,4 +29,8 @@ public class PrnSyn implements Syn {
 	public void noteOff(long tick, final int track, final int channel, final int key, final int velocity) {
 		printNote(track, channel, key, velocity, false);
 	}
+	@Override
+	public void bend(long tick, final int track, final int channel, final int amount) {
+	}
+
 }

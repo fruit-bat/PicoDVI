@@ -1,10 +1,15 @@
 add_executable(scratch_audio
 	main.c
+	us_patch.c
+	us_patch_1.c
 	us_lpf.c
 	us_pitch.c
 	us_tuner.c
 	us_wave.c
 	us_adsr.c
+	us_uint8_dlist.c
+	us_channel.c
+	us_channels.c
 	us_voice.c
 	us_voices.c
 	us_pm.c
@@ -30,7 +35,7 @@ target_link_libraries(scratch_audio
 	libdvi
 )
 
-# pico_enable_stdio_uart(scratch_audio 1)
+pico_enable_stdio_uart(scratch_audio 1)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(scratch_audio)

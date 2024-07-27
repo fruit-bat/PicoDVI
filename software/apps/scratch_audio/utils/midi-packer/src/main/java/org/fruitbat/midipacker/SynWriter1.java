@@ -7,6 +7,7 @@ enum SynCommands {
     SynCmdTempo,
     SynCmdOn,
     SynCmdOff,
+    SynCmdBend,
     SynCmdTime,
     SynCmdEnd
 }
@@ -63,27 +64,29 @@ public class SynWriter1 implements SynWriter {
     }
 
     @Override
-    public void writeVoiceOn(int index, int key, int velocity) {
+    public void writeVoiceOn(final int channel, final int key, final int velocity) {
         writeTimeDelta();
-        println(String.format("  0x%02X, 0x%02X, 0x%02X, 0x%02X, // Voice on %d, key %d, velocity %d",
+        println(String.format("  0x%02X, 0x%02X, 0x%02X, 0x%02X, // Voice on channel %d, key %d, velocity %d",
             SynCommands.SynCmdOn.ordinal(),
-            index,
+            channel,
             key,
             velocity,
-            index,
+            channel,
             key,
             velocity));        
     }
 
     @Override
-    public void writeVoiceOff(int index, int velocity) {
+    public void writeVoiceOff(final int channel, final int key, final int velocity) {
         writeTimeDelta();
-        println(String.format("  0x%02X, 0x%02X, 0x%02X, // Voice off %d, velocity %d",
+        println(String.format("  0x%02X, 0x%02X, 0x%02X, 0x%02X, // Voice off channel %d, key %d, velocity %d",
             SynCommands.SynCmdOff.ordinal(),
-            index,
+            channel,
+            key,
             velocity,
-            index,
-            velocity));        
+            channel,
+            key,
+            velocity));           
     }
 
     @Override
@@ -119,5 +122,16 @@ public class SynWriter1 implements SynWriter {
                     d));
             }
         }
+    }
+
+    @Override
+    public void writeBend(final int index, final int amount) {
+        writeTimeDelta();
+        println(String.format("  0x%02X, 0x%02X, %s // Bend group %d, amount %d",
+            SynCommands.SynCmdBend.ordinal(),
+            index,
+            nbytes(amount, 2),
+            index,
+            amount));  
     }
 }

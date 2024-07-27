@@ -16,6 +16,9 @@ public class PrSyn implements Syn {
 		_keys[key] = '-';
 	}
 	@Override
+	public void bend(long tick, final int track, final int channel, final int amount) {
+	}
+	@Override
 	public String toString() {
 		return String.valueOf(_keys);
 	}

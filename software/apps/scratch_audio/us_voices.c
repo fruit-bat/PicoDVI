@@ -17,3 +17,4 @@ int32_t __not_in_flash_func(us_voices_update)(UsVoices *voices) {
     if (out < -32768) return -32768;
     return out;
 }
+

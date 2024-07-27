@@ -18,7 +18,10 @@ public class Main {
 
 	public static void main(String[] args) throws InvalidMidiDataException, IOException {
 		final List<String> files = new ArrayList<>();
-		files.add("example");
+//		files.add("48709");
+//		files.add("pitch_bend_1");
+		files.add("bach_example_1");
+		//files.add("example");
 		// files.add("moonlight");
 		// files.add("bwv0248a");
 		// files.add("bwv0248b");
@@ -39,7 +42,7 @@ public class Main {
 		) {
 			final Syn prsyn = new PrSyn();
 			final SynWriter writer = new SynWriter1(new PrintStream(bos));
-			final MidiPacker packer = new MidiPacker(writer, 16);
+			final MidiPacker packer = new MidiPacker(writer, 32);
 
 			final Syn syn = new CompSyn(new Syn[] { packer });
 

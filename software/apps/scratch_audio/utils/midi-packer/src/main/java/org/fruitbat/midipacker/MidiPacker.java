@@ -3,10 +3,13 @@ package org.fruitbat.midipacker;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+
 public class MidiPacker implements Syn {
 
     private final LinkedList<Voice> _voicesOn = new LinkedList<>();
     private final LinkedList<Voice> _voicesOff = new LinkedList<>();
+    private final VoiceGroups _groups = new VoiceGroups();
+
     private final int _voiceCount;
     private final SynWriter _writer;
 
@@ -28,9 +31,11 @@ public class MidiPacker implements Syn {
 
     public void soundOn(long tick, int track, int channel, int key, int velocity) {
         if (_voicesOff.size() < 1) throw new RuntimeException("Too few voices");
+        final VoiceGroup group = _groups.get(track, channel);
         final Voice voice = _voicesOff.removeLast();
-        voice.on(track, channel, key);
-        _writer.writeVoiceOn(voice.index(), key, velocity);
+        voice.assign(group);
+        voice.on(key);
+        _writer.writeVoiceOn(channel, key, velocity);
         _keys[key] = (char)('0' + voice.index());
         _voicesOn.add(voice);
         final int voiceOnCount = _voicesOn.size();
@@ -38,13 +43,14 @@ public class MidiPacker implements Syn {
     }
 
     public void soundOff(long tick, int track, int channel, int key, int velocity) {
+        final VoiceGroupKey k = new VoiceGroupKey(track, channel);
         for (final Iterator<Voice> it =_voicesOn.iterator() ; it.hasNext(); ) {
             final Voice voice = it.next();
-            if (voice.is(track, channel, key)) {
+            if (voice.is(k, key)) {
                 it.remove();
                 _keys[key] = '-';
                 _voicesOff.addFirst(voice);
-                _writer.writeVoiceOff(voice.index(), velocity);
+                _writer.writeVoiceOff(channel, key, velocity);
                 break;
             }
         }
@@ -69,5 +75,12 @@ public class MidiPacker implements Syn {
 	@Override
 	public String toString() {
 		return String.valueOf(_keys);
-	}    
+	}
+
+	@Override
+	public void bend(long tick, final int track, final int channel, final int amount) {
+        final VoiceGroupKey groupKey = new VoiceGroupKey(track, channel);
+        final VoiceGroup group = _groups.get(groupKey);
+        _writer.writeBend(group.id(), amount);
+	}
 }

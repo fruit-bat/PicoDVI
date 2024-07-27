@@ -1,12 +1,14 @@
 #pragma once
 #include "us_adsr.h"
 #include "us_wave.h"
+#include "us_patch.h"
 
 enum UsAdsrStage {
     UsAdsrStageOff = 0,
     UsAdsrStageAttack,
     UsAdsrStageDecay,
     UsAdsrStageSustain,
+    UsAdsrStagePreRelease,
     UsAdsrStageRelease,
 };
 
@@ -19,6 +21,7 @@ typedef struct {
 
 typedef struct {
     UsAdsrConfig *config; // ADSR configuration
+    uint32_t velocity;    // the key press velocity
     uint8_t stage;        // the current stage
     UsTuner tuner;        // the current stage timer
     UsWaveFunc wave_func; // the current wave function
@@ -36,7 +39,8 @@ void us_adsr_init(
 );
 
 void us_adsr_attack(
-    UsAdsr *adsr
+    UsAdsr *adsr,
+    uint32_t velocity
 );
 
 void us_adsr_release(
@@ -44,7 +48,10 @@ void us_adsr_release(
 );
 
 int32_t us_adsr_update(
-    UsAdsr *adsr
+    UsAdsr *adsr,
+    UsPatchCallbacks* callbacks,
+    void *callback_data,
+    uint32_t callback_id
 );
 
 bool inline us_adsr_is_off(

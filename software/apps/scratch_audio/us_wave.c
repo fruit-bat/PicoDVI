@@ -1,8 +1,5 @@
 #include "us_wave.h"
-
-// Needed for the sin tables
-// TODO split this out from the other tables
-#include "u_synth_tone_tables.h"
+#include "us_wave_sin_table.h"
 
 inline static int32_t us_lerp_n(
     const int32_t s1,           // Sample 1
@@ -145,22 +142,30 @@ const uint16_t us_wave_not_square_samples[] = {
     32767
 };
 
-// Example quarter wave samples for lerping
+// Example half wave samples for lerping
 const uint16_t us_wave_half_not_square_samples[] = {
-    0,
-    15000,
-    17000,
-    30000,
-    32000,
-    32000,
-    20000,
-    10000,
-    400
+    0,     // 0
+    10,    // 1
+    1000,  // 2
+    2000,  // 3
+    10000, // 4
+    12000, // 5
+    20000, // 6
+    25000, // 7
+    32000, // 8
+    32200, // 9
+    32000, // 10
+    25000, // 11
+    20000, // 12
+    12000, // 13
+    10000, // 14
+    1000,  // 15
+    10,    // 16
 };
 
 int32_t __not_in_flash_func(us_wave_not_square_lerp)(
     const uint32_t bang
 ) {
     //return us_wave_half_lerp(bang, us_wave_not_square_samples, 2);
-    return us_wave_half_lerp(bang, us_wave_half_not_square_samples, 3);
+    return us_wave_half_lerp(bang, us_wave_half_not_square_samples, 4);
 }
