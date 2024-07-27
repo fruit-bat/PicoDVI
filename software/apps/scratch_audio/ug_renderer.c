@@ -226,11 +226,11 @@ inline static void __not_in_flash_func(render_row_text_8_p1)(
 	const uint32_t v = w >> 2;
 	for(uint32_t i = 0; i < v; ++i) {
 		const uint32_t q = i << 2;
-		const uint8_t d1 = font_8x8[r + (s[q]   << 3)];
-		const uint8_t d2 = font_8x8[r + (s[q+1] << 3)];
-		const uint8_t d3 = font_8x8[r + (s[q+2] << 3)];
-		const uint8_t d4 = font_8x8[r + (s[q+3] << 3)];
-		const uint32_t g = (((uint32_t)d1) << 24) | (((uint32_t)d2) << 16) | (((uint32_t)d3) << 8) | d4;
+		const uint32_t d1 = (uint32_t)font_8x8[r + (s[q]   << 3)];
+		const uint32_t d2 = (uint32_t)font_8x8[r + (s[q+1] << 3)];
+		const uint32_t d3 = (uint32_t)font_8x8[r + (s[q+2] << 3)];
+		const uint32_t d4 = (uint32_t)font_8x8[r + (s[q+3] << 3)];
+		const uint32_t g = (d1 << 24) | (d2 << 16) | (d3 << 8) | d4;
 		render_row_n_p1(
 			g,
 			p,
