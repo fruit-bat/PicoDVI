@@ -220,7 +220,9 @@ inline static void __not_in_flash_func(render_row_text_8_p1)(
 	const int32_t tdmsI,
 	const int32_t row
 ) {
-	uint8_t * const s = tg->s + __mul_instruction((row >> 3), tg->w);
+	const uint32_t ty = (row >> 3) + tg->ys;
+	const uint32_t th = tg->h;
+	uint8_t * const s = tg->s + __mul_instruction(ty >= th ? ty - th : ty, tg->w);
 	const uint32_t r = row & 7;
 	const uint32_t w = tg->w;
 	const uint32_t v = w >> 2;

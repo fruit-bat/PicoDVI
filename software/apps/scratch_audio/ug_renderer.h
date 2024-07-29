@@ -33,6 +33,8 @@ typedef struct {
 
 typedef struct {
 	uint16_t w;
+	uint16_t h;
+	uint16_t ys;
 	uint8_t *s;
 } TextGrid8_t;
 

@@ -50,6 +50,6 @@ void us_midi_uart_loop_test() {
     }
     while (uart_is_readable(US_MIDI_UART_ID)) {
         uint8_t k = uart_getc(US_MIDI_UART_ID);
-        printf("Received %d\n", k);
+        if (k != 248) printf("Received %d\n", k);
     }    
 }
