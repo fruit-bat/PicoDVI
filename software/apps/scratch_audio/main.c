@@ -19,6 +19,7 @@
 
 // Graphics stuff
 #include "ug_renderer.h"
+#include "ug_terminal.h"
 
 // Music stuff
 #include "us_midi_uart.h"
@@ -263,24 +264,12 @@ Where blossomed many an incense-bearing tree; \
 And here were forests ancient as the hills, \
 Enfolding sunny spots of greenery. ";
 
-void tscp(uint8_t *t, const char *s) {
-	while(*s) *t++ = *s++;
-}
-
-static uint8_t _text1 [40*24]; 
-static TextGrid8_t _textGrid1 = {
-	40, _text1
-};
-
 static uint32_t inv_index;
 static uint32_t mot_index;
 static uint32_t gun_index;
 
 static int32_t inv_v = 1;
 void init_game() {
-
-	memset(_text1, 32, sizeof(_text1));
-	tscp(_text1, kubla);
 
 	uint32_t si = 0;	
 	init_sprite(si++, 50, 15, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_altx_16x8_p1, (SpriteCollisionMask)1);
@@ -300,7 +289,7 @@ void init_game() {
 			si++;
 		}
 	}
-	init_sprite(si++, 0, 0, 32*8, 24*8, SF_ENABLE, &_textGrid1, &pallet1_Green, text_renderer_8x8_p1, (SpriteCollisionMask)0);
+	init_sprite(si++, 0, 0, UG_TERMINAL_WIDTH*8, UG_TERMINAL_HEIGHT*8, SF_ENABLE, ug_terminal_text_grid(), &pallet1_Green, text_renderer_8x8_p1, (SpriteCollisionMask)0);
 
 }
 void __not_in_flash_func(update_mother_ship)(Sprite *sprites) {	
@@ -362,7 +351,9 @@ int __not_in_flash_func(main)() {
 	// Run system at TMDS bit clock
 	set_sys_clock_khz(DVI_TIMING.bit_clk_khz, true);
 
-	setup_default_uart();
+	// setup_default_uart();
+	stdio_init_all();
+	ug_terminal_init();
 
 	dvi0.timing = &DVI_TIMING;
 	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;

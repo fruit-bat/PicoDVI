@@ -1,5 +1,6 @@
 add_executable(scratch_audio
 	ug_renderer.c
+	ug_terminal.c
 	main.c
 	us_patch.c
 	us_patch_1.c
@@ -37,7 +38,7 @@ target_link_libraries(scratch_audio
 	libdvi
 )
 
-pico_enable_stdio_uart(scratch_audio 1)
+pico_enable_stdio_uart(scratch_audio 0)
 
 # create map/bin/hex file etc.
 pico_add_extra_outputs(scratch_audio)
