@@ -6,7 +6,7 @@ void init_config(void* config) {
 
     UsPatch1Config *patch1_config = (UsPatch1Config*)config;
 	us_adsr_config_init(&patch1_config->adsr_config);
-    patch1_config->wave_func = us_wave_saw;
+    patch1_config->wave_func = us_wave_not_square_lerp /* us_wave_saw */;
 }
 
 static void init_data(void* data, void* config) {

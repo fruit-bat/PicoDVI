@@ -14,6 +14,7 @@ add_executable(scratch_audio
 	us_voice.c
 	us_voices.c
 	us_pm.c
+	us_midi_uart.c
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")

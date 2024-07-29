@@ -21,6 +21,7 @@
 #include "ug_renderer.h"
 
 // Music stuff
+#include "us_midi_uart.h"
 #include "us_channels.h"
 #include "us_pm.h"
 #include "us_lpf.h"
@@ -63,7 +64,7 @@ struct dvi_inst dvi0;
 audio_sample_t      audio_buffer[AUDIO_BUFFER_SIZE];
 struct repeating_timer audio_timer;
 
-#define US_PATCH1_COUNT 16
+#define US_PATCH1_COUNT 64
 static UsPatch1Data patch1_data[US_PATCH1_COUNT];
 static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
@@ -72,6 +73,9 @@ static UsPmSequencer sequencer;
 static UsLpf lpf;
 
 void setup_synth() {
+
+	us_midi_uart_init();
+
 	us_channels_init(&channels);
 
 	us_channel_set_patch(
@@ -381,6 +385,8 @@ int __not_in_flash_func(main)() {
 	init_game();
 
 	multicore_launch_core1(core1_main);
+
+	while(1) us_midi_uart_loop_test();
 
 	while (1)
 		__wfi();
