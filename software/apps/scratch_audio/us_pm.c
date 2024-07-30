@@ -134,10 +134,10 @@ void us_pm_sequencer_init(
 }
 
 // Called every sample
-int32_t __not_in_flash_func(us_pm_sequencer_update)(
+void __not_in_flash_func(us_pm_sequencer_update)(
     UsPmSequencer *sequencer
 ) {
-    if (sequencer->cursor == NULL) return 0;
+    if (sequencer->cursor == NULL) return;
     us_tuner_rotate(&sequencer->clock);
     while (sequencer->clock.bang > sequencer->tempo) {
         --sequencer->ticks;
@@ -146,5 +146,4 @@ int32_t __not_in_flash_func(us_pm_sequencer_update)(
     while (sequencer->ticks <= 0 && sequencer->cursor != NULL) {
         sequencer->cursor = us_pm_step(sequencer);
     }
-    return us_channels_update(sequencer->channels);
 }

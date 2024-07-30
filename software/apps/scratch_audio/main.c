@@ -29,6 +29,7 @@
 #include "bach_packed_midi_1.h"
 //#include "pitch_bend_packed_midi.h"
 #include "us_patch_1.h"
+#include "us_midi_in.h"
 
 // End music stuff
 
@@ -72,10 +73,12 @@ static UsPatch1Config patch1_config;
 static UsChannels channels;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
+static UsMidiIn us_midi_in;
 
 void setup_synth() {
 
 	us_midi_uart_init();
+	us_midi_in_init(&us_midi_in);
 
 	us_channels_init(&channels);
 
@@ -101,7 +104,10 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {	
-			const int32_t v = us_pm_sequencer_update(&sequencer);
+			us_pm_sequencer_update(&sequencer);
+			us_midi_in_update(&us_midi_in);
+
+			const int32_t v = us_channels_update(&channels);
 			const int16_t s = (int16_t)us_lpf_sample(&lpf, v);
 			sample.channels[0] = s;
 			sample.channels[1] = s;
@@ -274,10 +280,10 @@ void init_game() {
 	uint32_t si = 0;	
 	init_sprite(si++, 50, 15, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_altx_16x8_p1, (SpriteCollisionMask)1);
 	init_sprite(si++, 66, 19, 16, 8, SF_ENABLE, &tile16x8p2_invader, &pallet1_Green, sprite_renderer_altx_16x8_p1, (SpriteCollisionMask)2);
-	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Green, sprite_renderer_sprite_32x16_p1, (SpriteCollisionMask)8);
+	init_sprite(si++, 66, 200, 32, 16, SF_ENABLE, &tile32x16p2_base, &pallet1_Purple, sprite_renderer_sprite_32x16_p1, (SpriteCollisionMask)8);
 
 	init_sprite(mot_index = si++, -1000, 9, 16, 8, SF_ENABLE, &tile16x8p2_invader[6], &pallet1_Red, sprite_renderer_sprite_16x8_p1, (SpriteCollisionMask)0);
-	init_sprite(gun_index = si++, 20, FRAME_HEIGHT - 24, 16, 8, SF_ENABLE, &tile16x8p2_invader[7], &pallet1_Green, sprite_renderer_sprite_16x8_p1, (SpriteCollisionMask)0);
+	init_sprite(gun_index = si++, 20, FRAME_HEIGHT - 24, 16, 8, SF_ENABLE, &tile16x8p2_invader[7], &pallet1_Purple, sprite_renderer_sprite_16x8_p1, (SpriteCollisionMask)0);
 
 	inv_index = si;
 	uint32_t rt[5] = {0, 2, 2, 4, 4};
@@ -372,12 +378,9 @@ int __not_in_flash_func(main)() {
 
 	init_sprites();
 	
-	printf("starting...\n");
 	init_game();
 
 	multicore_launch_core1(core1_main);
-
-	while(1) us_midi_uart_loop_test();
 
 	while (1)
 		__wfi();

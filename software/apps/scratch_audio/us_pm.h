@@ -44,6 +44,6 @@ void us_pm_sequencer_init(
     bool repeat
 );
 
-int32_t us_pm_sequencer_update(
+void us_pm_sequencer_update(
     UsPmSequencer *sequencer
 );
