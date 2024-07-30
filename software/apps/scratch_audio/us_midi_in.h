@@ -2,8 +2,8 @@
 #include "pico/stdlib.h"
 
 enum UsMidiInState {
-    UsMidiInIdle,
-    UsMidiInSatus,
+    UsMidiInIdle = 0,
+    UsMidiInStatus,
     UsMidiSysExec
 };
 

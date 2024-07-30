@@ -15,9 +15,6 @@ static TextGrid8_t _textGrid = {
        .s = (uint8_t *)&text
 };
 
-// ys = 0 yl = 0
-// ys = 1 yl = 1
-// ys = 2 
 static inline void ug_terminal_put(char c) {
     text[ci++] = c;
     if (++cx == UG_TERMINAL_WIDTH) {
@@ -37,7 +34,9 @@ static inline void ug_terminal_out_char(char c) {
         if (cx == 0) ug_terminal_put(' ');
         while(cx > 0) ug_terminal_put(' ');
     }
-    ug_terminal_put(c);
+    else {
+        ug_terminal_put(c);
+    }
 }
 
 static void __not_in_flash_func(ug_terminal_out_chars)(const char*s, int l) {

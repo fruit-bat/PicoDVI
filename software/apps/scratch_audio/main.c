@@ -382,7 +382,7 @@ int __not_in_flash_func(main)() {
 
 	multicore_launch_core1(core1_main);
 
-	while (1)
+  	while (1)
 		__wfi();
 }
 	
