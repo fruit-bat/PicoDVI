@@ -7,6 +7,7 @@ static char text[UG_TERMINAL_WIDTH * UG_TERMINAL_HEIGHT];
 static uint32_t cx = 0;
 static uint32_t cy = 0;
 static uint32_t ci = 0;
+static bool pending_cr = false;
 
 static TextGrid8_t _textGrid = {
        .w = UG_TERMINAL_WIDTH, 
@@ -16,6 +17,10 @@ static TextGrid8_t _textGrid = {
 };
 
 static inline void ug_terminal_put(char c) {
+    if (pending_cr) {
+        pending_cr = false;
+        if (++_textGrid.ys == UG_TERMINAL_HEIGHT) _textGrid.ys = 0;
+    }
     text[ci++] = c;
     if (++cx == UG_TERMINAL_WIDTH) {
         cx = 0;
@@ -23,9 +28,7 @@ static inline void ug_terminal_put(char c) {
             cy = 0;
             ci = 0;
         }
-        if (_textGrid.ys == cy) {
-            if (++_textGrid.ys == UG_TERMINAL_HEIGHT) _textGrid.ys = 0;
-        }
+        pending_cr = _textGrid.ys == cy;
     }
 }
 
