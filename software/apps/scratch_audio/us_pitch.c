@@ -13,7 +13,7 @@ void us_pitch_set_midi_note(
     const uint32_t note_index,  // MIDI note number, range 0, 127
     const int32_t pitch_bend)   // 0 = no bend, range +/- 16384, for 2 tones
 {
-    const int32_t fni = (int32_t)((US_NOTE_MIDI_OFFSET + note_index) << US_NOTE_FRACTIONS_LOG2) + (pitch_bend >> 7);
+    const int32_t fni = (int32_t)((US_NOTE_MIDI_OFFSET + note_index) << US_NOTE_FRACTIONS_LOG2) + (pitch_bend >> 6);
     const int32_t mni = (fni >> US_NOTE_FRACTIONS_LOG2);
     const uint32_t octave = us_divide_by_12_approx(mni);
     const int32_t ani = fni - (__mul_instruction(octave, US_NOTE_TABLE_SIZE));

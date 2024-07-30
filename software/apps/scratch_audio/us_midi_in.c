@@ -41,7 +41,8 @@ static inline void us_midi_in_status_message(UsMidiIn *us_midi_in){
             const uint32_t k = us_midi_in_data(us_midi_in, 0);
             const uint32_t v = us_midi_in_data(us_midi_in, 1);
 //            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
-            us_channel_note_on(channel, k, v);
+            if (v) us_channel_note_on(channel, k, v);
+            else us_channel_note_off(channel, k, v);
             break;
         }
         case 6: { // 1110nnnn	0fffffff	0ccccccc	Pitch Bend	n=channel c=coarse f=fine (c+f = 14-bit resolution)

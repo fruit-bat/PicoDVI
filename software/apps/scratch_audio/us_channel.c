@@ -180,7 +180,33 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
 void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
     channel->bend = bend;
     if (channel->patch_count) {
-        // TODO
+        // Update all of the patch instances on the 'release' list
+        {
+            uint8_t patch_index = channel->patch_state_lists[UsPatchStateRelease].head;
+            while(patch_index != US_UINT8_DLIST_NULL) {
+                UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+                channel->patch.bend(
+                    get_patch_data(channel, patch_index), // The data the patch needs to function
+                    patch_state->note,
+                    bend
+                );
+                patch_index = patch_state->links.next;
+            }
+        }
+
+        // Update all of the patch instances on the 'on' list
+        {
+            uint8_t patch_index = channel->patch_state_lists[UsPatchStateOn].head;
+            while(patch_index != US_UINT8_DLIST_NULL) {
+                UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
+                channel->patch.bend(
+                    get_patch_data(channel, patch_index), // The data the patch needs to function
+                    patch_state->note,
+                    bend
+                );
+                patch_index = patch_state->links.next;
+            }
+        }
     }
 }
 
