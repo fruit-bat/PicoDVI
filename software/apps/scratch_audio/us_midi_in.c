@@ -16,6 +16,40 @@ static uint8_t message_data_lengths[8] = {
     2, // 1110nnnn	0lllllll    0mmmmmmm	Pitch Bend Change. 
 };
 
+static inline uint32_t us_midi_in_data(UsMidiIn *us_midi_in, uint32_t index) {
+    return (uint32_t)us_midi_in->d[index];
+}
+
+static inline uint32_t us_midi_in_14bit_data(UsMidiIn *us_midi_in) {
+    return us_midi_in_data(us_midi_in, 0) | (us_midi_in_data(us_midi_in, 1) << 7);
+}
+
+static inline void us_midi_in_status_message(UsMidiIn *us_midi_in){
+    const uint32_t n = us_midi_in->sc;
+    switch(us_midi_in->sm) {
+        case 0: { // 1000nnnn	0kkkkkkk	0vvvvvvv	Note Off	n=channel* k=key # 0-127 (60=middle C) v=velocity (0-127)
+            const uint32_t k = us_midi_in_data(us_midi_in, 0);
+            const uint32_t v = us_midi_in_data(us_midi_in, 1);
+            printf("Note off: n=%ld k=%ld v=%ld\n", n, k, v);
+
+            break;
+        }
+        case 1: { // 1001nnnn	0kkkkkkk	0vvvvvvv	Note On	n=channel k=key # 0-127(60=middle C) v=velocity (0-127)
+            const uint32_t k = us_midi_in_data(us_midi_in, 0);
+            const uint32_t v = us_midi_in_data(us_midi_in, 1);
+            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
+
+            break;
+        }
+        case 6: { // 1110nnnn	0fffffff	0ccccccc	Pitch Bend	n=channel c=coarse f=fine (c+f = 14-bit resolution)
+            const uint32_t b = us_midi_in_14bit_data(us_midi_in);
+            printf("Pitch bend: n=%ld b=%ld\n", n, b);
+
+            break;
+        }
+    }
+}
+
 void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
     if (uart_is_readable(US_MIDI_UART_ID)) {
         const uint8_t k = uart_getc(US_MIDI_UART_ID);
@@ -44,6 +78,7 @@ void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
                                 us_midi_in->sc,
                                 us_midi_in->d[0]);
                         }
+                        us_midi_in_status_message(us_midi_in);
                         us_midi_in->state = UsMidiInIdle;
                     }
                     break;
