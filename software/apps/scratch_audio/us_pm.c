@@ -68,7 +68,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 
             UsChannel *channel = us_channels_get(channels, c);
 
-            us_channel_note_on(channel, k, v);
+            if (channel) us_channel_note_on(channel, k, v);
 
             cursor += SynCmdOnLen;
             break;
@@ -82,7 +82,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 
             UsChannel *channel = us_channels_get(channels, c);
 
-            us_channel_note_off(channel, k, v);
+            if (channel) us_channel_note_off(channel, k, v);
 
             cursor += SynCmdOffLen;
             break;
@@ -95,9 +95,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 
             UsChannel *channel = us_channels_get(channels, c);
 
-            channel->bend = bend;
-
-            us_channel_bend(channel, bend);
+            if (channel) us_channel_bend(channel, bend);
 
             cursor += SynCmdBendLen;
             break;

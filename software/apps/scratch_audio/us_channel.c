@@ -178,6 +178,7 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
 }
 
 void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
+    channel->bend = bend;
     if (channel->patch_count) {
         // TODO
     }

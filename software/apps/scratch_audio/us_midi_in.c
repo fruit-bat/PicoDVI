@@ -2,8 +2,9 @@
 #include "us_midi_uart.h"
 #include <stdio.h>
 
-void us_midi_in_init(UsMidiIn *us_midi_in) {
+void us_midi_in_init(UsMidiIn *us_midi_in, UsChannels *channels) {
     us_midi_in->state = UsMidiInIdle;
+    us_midi_in->channels = channels;
 }
 
 static uint8_t message_data_lengths[8] = {
@@ -26,34 +27,36 @@ static inline uint32_t us_midi_in_14bit_data(UsMidiIn *us_midi_in) {
 
 static inline void us_midi_in_status_message(UsMidiIn *us_midi_in){
     const uint32_t n = us_midi_in->sc;
+    UsChannel * const channel = us_channels_get(us_midi_in->channels, n);
+    if (channel == NULL) return ;
     switch(us_midi_in->sm) {
         case 0: { // 1000nnnn	0kkkkkkk	0vvvvvvv	Note Off	n=channel* k=key # 0-127 (60=middle C) v=velocity (0-127)
             const uint32_t k = us_midi_in_data(us_midi_in, 0);
             const uint32_t v = us_midi_in_data(us_midi_in, 1);
-            printf("Note off: n=%ld k=%ld v=%ld\n", n, k, v);
-
+ //           printf("Note off: n=%ld k=%ld v=%ld\n", n, k, v);
+            us_channel_note_off(channel, k, v);
             break;
         }
         case 1: { // 1001nnnn	0kkkkkkk	0vvvvvvv	Note On	n=channel k=key # 0-127(60=middle C) v=velocity (0-127)
             const uint32_t k = us_midi_in_data(us_midi_in, 0);
             const uint32_t v = us_midi_in_data(us_midi_in, 1);
-            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
-
+//            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
+            us_channel_note_on(channel, k, v);
             break;
         }
         case 6: { // 1110nnnn	0fffffff	0ccccccc	Pitch Bend	n=channel c=coarse f=fine (c+f = 14-bit resolution)
             const uint32_t b = us_midi_in_14bit_data(us_midi_in);
-            printf("Pitch bend: n=%ld b=%ld\n", n, b);
-
+//            printf("Pitch bend: n=%ld b=%ld\n", n, b);
+            us_channel_bend(channel, (int32_t)b - 8192 );
             break;
         }
     }
 }
 
 void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
-    if (uart_is_readable(US_MIDI_UART_ID)) {
+    while (uart_is_readable(US_MIDI_UART_ID)) {
         const uint8_t k = uart_getc(US_MIDI_UART_ID);
-        if (k != 248) printf("state %d data %d %8.8b\n", us_midi_in->state, k, k);        
+        // if (k != 248) printf("state %d data %d %8.8b\n", us_midi_in->state, k, k);        
         switch(us_midi_in->state) {
             case UsMidiInStatus: {
                 if (k & 0b10000000) {
@@ -65,19 +68,19 @@ void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
                     us_midi_in->d[us_midi_in->di++] = k;
                     if (us_midi_in->di >= us_midi_in->dl) {
                         // We have a complete status message
-                        if (us_midi_in->dl == 2) {
-                            printf("ms %d %d %8.8b %8.8b\n",
-                                us_midi_in->sm,
-                                us_midi_in->sc,
-                                us_midi_in->d[0],
-                                us_midi_in->d[1]);
-                        }
-                        else {
-                            printf("ms %d %d %8.8b\n",
-                                us_midi_in->sm,
-                                us_midi_in->sc,
-                                us_midi_in->d[0]);
-                        }
+                        // if (us_midi_in->dl == 2) {
+                        //     printf("ms %d %d %8.8b %8.8b\n",
+                        //         us_midi_in->sm,
+                        //         us_midi_in->sc,
+                        //         us_midi_in->d[0],
+                        //         us_midi_in->d[1]);
+                        // }
+                        // else {
+                        //     printf("ms %d %d %8.8b\n",
+                        //         us_midi_in->sm,
+                        //         us_midi_in->sc,
+                        //         us_midi_in->d[0]);
+                        // }
                         us_midi_in_status_message(us_midi_in);
                         us_midi_in->state = UsMidiInIdle;
                     }

@@ -78,7 +78,7 @@ static UsMidiIn us_midi_in;
 void setup_synth() {
 
 	us_midi_uart_init();
-	us_midi_in_init(&us_midi_in);
+	us_midi_in_init(&us_midi_in, &channels);
 
 	us_channels_init(&channels);
 
@@ -104,7 +104,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {	
-			us_pm_sequencer_update(&sequencer);
+			//us_pm_sequencer_update(&sequencer);
 			us_midi_in_update(&us_midi_in);
 
 			const int32_t v = us_channels_update(&channels);
