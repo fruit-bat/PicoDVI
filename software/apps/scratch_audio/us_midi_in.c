@@ -25,7 +25,21 @@ static inline uint32_t us_midi_in_14bit_data(UsMidiIn *us_midi_in) {
     return us_midi_in_data(us_midi_in, 0) | (us_midi_in_data(us_midi_in, 1) << 7);
 }
 
-static inline void us_midi_in_status_message(UsMidiIn *us_midi_in){
+static inline void us_midi_in_control_change(UsMidiIn *us_midi_in, UsChannel * const channel, const uint32_t c, const uint32_t v) {
+    switch (c) {
+        case 7: { // Channel volume
+            us_channel_vol(channel, v << 1);
+            break;
+        }
+        case 10: { // Channel pan
+
+            break;
+        }
+
+    }
+}
+
+static inline void us_midi_in_status_message(UsMidiIn *us_midi_in) {
     const uint32_t n = us_midi_in->sc;
     UsChannel * const channel = us_channels_get(us_midi_in->channels, n);
     if (channel == NULL) return ;
@@ -43,6 +57,13 @@ static inline void us_midi_in_status_message(UsMidiIn *us_midi_in){
 //            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
             if (v) us_channel_note_on(channel, k, v);
             else us_channel_note_off(channel, k, v);
+            break;
+        }
+        case 3: { // 1011nnnn	0ccccccc    0vvvvvvv	Control Change.
+            const uint32_t c = us_midi_in_data(us_midi_in, 0);
+            const uint32_t v = us_midi_in_data(us_midi_in, 1);
+            printf("Control change: n=%ld c=%ld v=%ld\n", n, c, v);
+            us_midi_in_control_change(us_midi_in, channel, c, v);
             break;
         }
         case 6: { // 1110nnnn	0fffffff	0ccccccc	Pitch Bend	n=channel c=coarse f=fine (c+f = 14-bit resolution)

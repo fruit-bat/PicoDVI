@@ -61,6 +61,9 @@ int32_t us_channel_update(UsChannel* channel);
 void us_channel_note_on(UsChannel* channel, uint32_t note, uint32_t velocity);
 void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity);
 void us_channel_bend(UsChannel* channel, int32_t bend);
+inline void us_channel_vol(UsChannel* channel, uint32_t vol) {
+    channel->gain = vol;
+}
 
 void us_channel_set_patch(
     UsChannel *channel,

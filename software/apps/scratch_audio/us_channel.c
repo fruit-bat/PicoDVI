@@ -247,11 +247,8 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
                 patch_index = patch_index_next;
             }
         }
-        // TODO should probably clip after applying gain ??
-        if (out > 32767) return 32767;
-        if (out < -32768) return -32768;
     }
-    return out;
+    return out * channel->gain;
 }
 
 // Optional callback

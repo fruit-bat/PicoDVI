@@ -14,6 +14,7 @@ int32_t us_channels_update(UsChannels *channels) {
     for(int32_t i = 0; i < US_CHANNEL_COUNT; ++i) {
         out += us_channel_update(&channels->channel[i]);
     }
+    out >>= 8;
     if (out > 32767) return 32767;
     if (out < -32768) return -32768;    
     return out;
