@@ -61,29 +61,30 @@ void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
         switch(us_midi_in->state) {
             case UsMidiInStatus: {
                 if (k & 0b10000000) {
-                    // Error in status message
-                    printf("error in midi status message\n");
+                    // End of running status message
+                    printf("End of running status\n");
                     us_midi_in->state = UsMidiInIdle;
                 }
                 else {
                     us_midi_in->d[us_midi_in->di++] = k;
                     if (us_midi_in->di >= us_midi_in->dl) {
                         // We have a complete status message
-                        // if (us_midi_in->dl == 2) {
-                        //     printf("ms %d %d %8.8b %8.8b\n",
-                        //         us_midi_in->sm,
-                        //         us_midi_in->sc,
-                        //         us_midi_in->d[0],
-                        //         us_midi_in->d[1]);
-                        // }
-                        // else {
-                        //     printf("ms %d %d %8.8b\n",
-                        //         us_midi_in->sm,
-                        //         us_midi_in->sc,
-                        //         us_midi_in->d[0]);
-                        // }
+                        if (us_midi_in->dl == 2) {
+                            printf("ms %d %d %8.8b %8.8b\n",
+                                us_midi_in->sm,
+                                us_midi_in->sc,
+                                us_midi_in->d[0],
+                                us_midi_in->d[1]);
+                        }
+                        else {
+                            printf("ms %d %d %8.8b\n",
+                                us_midi_in->sm,
+                                us_midi_in->sc,
+                                us_midi_in->d[0]);
+                        }
                         us_midi_in_status_message(us_midi_in);
-                        us_midi_in->state = UsMidiInIdle;
+                        // Prepare for running status message
+                        us_midi_in->di = 0;
                     }
                     break;
                 }       
