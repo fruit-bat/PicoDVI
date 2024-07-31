@@ -70,6 +70,12 @@ struct repeating_timer audio_timer;
 static UsPatch1Data patch1_data[US_PATCH1_COUNT];
 static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
+
+#define US_PATCH2_COUNT 64
+static UsPatch1Data patch2_data[US_PATCH2_COUNT];
+static UsChannelPatchState patch2_state[US_PATCH2_COUNT];
+static UsPatch1Config patch2_config;
+
 static UsChannels channels;
 static UsPmSequencer sequencer;
 static UsLpf lpf;
@@ -90,6 +96,15 @@ void setup_synth() {
 		sizeof(UsPatch1Data),
 		patch1_state,
 		US_PATCH1_COUNT);
+
+	us_channel_set_patch(
+		&channels.channel[1],
+		us_patch_1_apply,
+		&patch2_config,
+		patch2_data,
+		sizeof(UsPatch1Data),
+		patch2_state,
+		US_PATCH2_COUNT);
 
 	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
 
