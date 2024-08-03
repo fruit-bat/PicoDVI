@@ -15,7 +15,7 @@ void us_channel_init(UsChannel *channel) {
     channel->out_l = 0;
     channel->out_r = 0;
     channel->bend = 0;
-    channel->gain = 128; // Full volume
+    channel->gain = 64; // Half volume
     channel->pan = 64; // Centre
     channel->patch_count = 0;
     channel->patch_callbacks.off = us_channel_patch_cb_off;
@@ -100,33 +100,27 @@ static UsChannelPatchState * __not_in_flash_func(us_channel_relink_patch_state)(
 void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, uint32_t velocity) {
     if (channel->patch_count) {
         uint8_t patch_index = channel->notes[note];
-        if (patch_index == US_NOT_A_NOTE)
-        {
-            UsUint8DlistAnchor *patch_state_list_off = &channel->patch_state_lists[UsPatchStateOff];
-            if (us_uint8_dlist_is_empty(patch_state_list_off)) {
-                UsUint8DlistAnchor *patch_state_list_release = &channel->patch_state_lists[UsPatchStateRelease];
-                if (us_uint8_dlist_is_empty(patch_state_list_release)) {
-                    // Failure to allocate the note to a patch instance
-                    US_DEBUG("US_CHANNEL: can't play note %lu\n", note);
-                    return;
-                }
-                else {
-                    patch_index = patch_state_list_release->tail;
-                    channel->notes[channel->patch_state[patch_index].note] = US_NOT_A_NOTE;
-                }
-            } 
-            else {
-                patch_index = patch_state_list_off->tail;
-            }
+        if (patch_index != US_NOT_A_NOTE) {
+            us_channel_note_off(channel, note, 0);
         }
-        else {
-            // Check this is the note we think it is
-            uint8_t patch_note = channel->patch_state[patch_index].note;
-            if (patch_note != note) {
-                US_DEBUG("US_CHANNEL: ERROR allocating note %lu on patch %u, expected note %u\n", note, patch_index, patch_note);
+
+        UsUint8DlistAnchor *patch_state_list_off = &channel->patch_state_lists[UsPatchStateOff];
+        if (us_uint8_dlist_is_empty(patch_state_list_off)) {
+            UsUint8DlistAnchor *patch_state_list_release = &channel->patch_state_lists[UsPatchStateRelease];
+            if (us_uint8_dlist_is_empty(patch_state_list_release)) {
+                // Failure to allocate the note to a patch instance
+                US_DEBUG("US_CHANNEL: can't play note %lu\n", note);
                 return;
             }
+            else {
+                patch_index = patch_state_list_release->tail;
+            }
+        } 
+        else {
+            patch_index = patch_state_list_off->tail;
         }
+
+        if (patch_index == US_NOT_A_NOTE) return;
 
         US_DEBUG("US_CHANNEL: playing note %lu on patch %u\n", note, patch_index);
 
@@ -170,7 +164,9 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
                     channel,
                     patch_index,
                     UsPatchStateRelease
-                );             
+                );
+
+                channel->notes[note] = US_NOT_A_NOTE;
             }
             else {
                 // Something has gone wrong with our indexing
@@ -258,6 +254,7 @@ void __not_in_flash_func(us_channel_update)(UsChannel *channel) {
 // Optional callback
 void __not_in_flash_func(us_channel_patch_cb_release)(void *d, uint32_t patch_index) {
     UsChannel *channel = (UsChannel *)d;
+
     // Move the patch instance into the 'release' list
     us_channel_relink_patch_state(
         channel,
@@ -277,6 +274,5 @@ void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t patch_index)
         patch_index,
         UsPatchStateOff
     );
-    channel->notes[patch_state->note] = US_NOT_A_NOTE;
     patch_state->note = US_NOT_A_NOTE;
 }

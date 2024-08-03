@@ -83,7 +83,7 @@ void __not_in_flash_func(us_midi_in_update)(UsMidiIn *us_midi_in) {
             case UsMidiInStatus: {
                 if (k & 0b10000000) {
                     // End of running status message
-                    printf("End of running status\n");
+                    // printf("End of running status\n");
                     us_midi_in->state = UsMidiInIdle;
                 }
                 else {

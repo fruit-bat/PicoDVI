@@ -119,8 +119,8 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {	
-			//us_pm_sequencer_update(&sequencer);
-			us_midi_in_update(&us_midi_in);
+			us_pm_sequencer_update(&sequencer);
+			//us_midi_in_update(&us_midi_in);
 			us_channels_update(&channels);
 			sample.channels[0] = channels.out_l;
 			sample.channels[1] = channels.out_r;
