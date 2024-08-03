@@ -12,8 +12,11 @@ inline void* get_patch_data(UsChannel *channel, uint8_t patch_index) {
 }
 
 void us_channel_init(UsChannel *channel) {
+    channel->out_l = 0;
+    channel->out_r = 0;
     channel->bend = 0;
-    channel->gain = 256; // Full volume
+    channel->gain = 128; // Full volume
+    channel->pan = 64; // Centre
     channel->patch_count = 0;
     channel->patch_callbacks.off = us_channel_patch_cb_off;
     channel->patch_callbacks.release = us_channel_patch_cb_release;
@@ -210,7 +213,7 @@ void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
     }
 }
 
-int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
+void __not_in_flash_func(us_channel_update)(UsChannel *channel) {
     int32_t out = 0;
     if (channel->patch_count) {
         UsPatchCallbacks *patch_callbacks = &channel->patch_callbacks;
@@ -248,7 +251,8 @@ int32_t __not_in_flash_func(us_channel_update)(UsChannel *channel) {
             }
         }
     }
-    return out * channel->gain;
+    channel->out_l =  __mul_instruction(out, __mul_instruction(channel->gain, (128 - channel->pan)));
+    channel->out_r =  __mul_instruction(out, __mul_instruction(channel->gain, channel->pan));
 }
 
 // Optional callback

@@ -14,7 +14,7 @@ static void init_data(void* data, void* config) {
 
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;
     UsPatch1Config *patch1_config = (UsPatch1Config*)config;
-    us_adsr_init(&patch1_data->adsr, &patch1_config->adsr_config);    
+    us_adsr_init(&patch1_data->adsr, &patch1_config->adsr_config);
 }
 
 static void note_on(void* data, uint32_t note, int32_t bend, uint32_t velocity) {

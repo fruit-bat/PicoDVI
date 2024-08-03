@@ -28,11 +28,11 @@ static inline uint32_t us_midi_in_14bit_data(UsMidiIn *us_midi_in) {
 static inline void us_midi_in_control_change(UsMidiIn *us_midi_in, UsChannel * const channel, const uint32_t c, const uint32_t v) {
     switch (c) {
         case 7: { // Channel volume
-            us_channel_vol(channel, v << 1);
+            us_channel_vol(channel, v);
             break;
         }
         case 10: { // Channel pan
-
+            us_channel_pan(channel, v);
             break;
         }
 
