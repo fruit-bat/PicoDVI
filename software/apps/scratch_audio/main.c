@@ -78,7 +78,8 @@ static UsPatch1Config patch2_config;
 
 static UsChannels channels;
 static UsPmSequencer sequencer;
-static UsLpf lpf;
+static UsLpf lpf_l;
+static UsLpf lpf_r;
 static UsMidiIn us_midi_in;
 
 void setup_synth() {
@@ -108,7 +109,8 @@ void setup_synth() {
 
 	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
 
-	us_lpf_init(&lpf, 25000);
+	us_lpf_init(&lpf_l, 25000);
+	us_lpf_init(&lpf_r, 25000);
 }
 
 bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
@@ -120,10 +122,10 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {	
 			us_pm_sequencer_update(&sequencer);
-			//us_midi_in_update(&us_midi_in);
+			us_midi_in_update(&us_midi_in);
 			us_channels_update(&channels);
-			sample.channels[0] = channels.out_l;
-			sample.channels[1] = channels.out_r;
+			sample.channels[0] = us_lpf_sample(&lpf_l, channels.out_l);
+			sample.channels[1] = us_lpf_sample(&lpf_r, channels.out_r);
 			*audio_ptr++ = sample;
 		}
 		increase_write_pointer(&dvi0.audio_ring, size);

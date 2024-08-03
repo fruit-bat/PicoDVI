@@ -12,8 +12,6 @@ add_executable(scratch_audio
 	us_uint8_dlist.c
 	us_channel.c
 	us_channels.c
-	us_voice.c
-	us_voices.c
 	us_pm.c
 	us_midi_uart.c
 	us_midi_in.c
