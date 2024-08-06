@@ -15,7 +15,6 @@ typedef struct {
 } UsPatchCallbacks;
 
 typedef struct {
-    void (*init_config)(void* config);
     void (*init_data)(void* data, void* config);
     void (*note_on)(void* data, void* config, uint32_t note, int32_t bend, uint32_t velocity);
     void (*note_off)(void* data, void* config, uint32_t velocity); // This is a release TODO rename

@@ -29,6 +29,8 @@
 #include "bach_packed_midi_1.h"
 //#include "pitch_bend_packed_midi.h"
 #include "us_patch_1.h"
+#include "us_patch_sample.h"
+#include "inv_shoot_int16.h"
 #include "us_midi_in.h"
 
 // End music stuff
@@ -71,10 +73,15 @@ static UsPatch1Data patch1_data[US_PATCH1_COUNT];
 static UsChannelPatchState patch1_state[US_PATCH1_COUNT];
 static UsPatch1Config patch1_config;
 
-#define US_PATCH2_COUNT 64
+#define US_PATCH2_COUNT 16
 static UsPatch1Data patch2_data[US_PATCH2_COUNT];
 static UsChannelPatchState patch2_state[US_PATCH2_COUNT];
 static UsPatch1Config patch2_config;
+
+#define US_PATCH_S1_COUNT 4
+static UsPatchSampleData patch_s1_data[US_PATCH_S1_COUNT];
+static UsChannelPatchState patch_s1_state[US_PATCH_S1_COUNT];
+static UsPatchSampleConfig patch_s1_config;
 
 static UsChannels channels;
 static UsPmSequencer sequencer;
@@ -89,6 +96,8 @@ void setup_synth() {
 
 	us_channels_init(&channels);
 
+	us_patch_1_init_config(&patch1_config);
+
 	us_channel_set_patch(
 		&channels.channel[0],
 		us_patch_1_apply,
@@ -98,6 +107,8 @@ void setup_synth() {
 		patch1_state,
 		US_PATCH1_COUNT);
 
+	us_patch_1_init_config(&patch2_config);
+
 	us_channel_set_patch(
 		&channels.channel[1],
 		us_patch_1_apply,
@@ -106,6 +117,17 @@ void setup_synth() {
 		sizeof(UsPatch1Data),
 		patch2_state,
 		US_PATCH2_COUNT);
+
+	us_patch_sample_init_config(&patch_s1_config, (int16_t *)inv_shoot_int16, sizeof(inv_shoot_int16) /2);
+
+	us_channel_set_patch(
+		&channels.channel[2],
+		us_patch_sample_apply,
+		&patch_s1_config,
+		patch_s1_data,
+		sizeof(UsPatchSampleData),
+		patch_s1_state,
+		US_PATCH_S1_COUNT);
 
 	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
 
@@ -121,7 +143,7 @@ bool __not_in_flash_func(audio_timer_callback)(struct repeating_timer *t) {
 		audio_sample_t *audio_ptr = get_write_pointer(&dvi0.audio_ring);
 		audio_sample_t sample;
 		for (int cnt = 0; cnt < size; cnt++) {	
-			us_pm_sequencer_update(&sequencer);
+			//us_pm_sequencer_update(&sequencer);
 			us_midi_in_update(&us_midi_in);
 			us_channels_update(&channels);
 			sample.channels[0] = us_lpf_sample(&lpf_l, channels.out_l);

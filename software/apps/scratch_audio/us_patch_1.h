@@ -14,4 +14,5 @@ typedef struct {
     UsWaveFunc wave_func;
 } UsPatch1Config;
 
+void us_patch_1_init_config(UsPatch1Config* config);
 void us_patch_1_apply(UsPatch *patch);

@@ -1,12 +1,11 @@
 #include "us_patch_sample.h"
 #include "us_debug.h"
 
-static void init_config(void* config) {
+void us_patch_sample_init_config(UsPatchSampleConfig* patch_config, int16_t *samples, uint32_t sample_count) {
     US_DEBUG("US_PATCH_SAMPLE: init config\n");
 
-    UsPatchSampleConfig *patch_config = (UsPatchSampleConfig*)config;
-    patch_config->samples = NULL;
-    patch_config->sample_count = 0;
+    patch_config->samples = samples;
+    patch_config->sample_count = sample_count;
 }
 
 static void init_data(void* data, void* config) {
@@ -41,13 +40,15 @@ static int32_t update(void* data, void* config, UsPatchCallbacks* callbacks, voi
     UsPatchSampleData *patch_data = (UsPatchSampleData*)data;
     UsPatchSampleConfig *patch_config = (UsPatchSampleConfig*)config;
 
-    if (patch_data->pos == patch_config->sample_count) return 0;
+    if (patch_data->pos >= patch_config->sample_count) {
+        if (callbacks) callbacks->off(callback_data, callback_id);
+        return 0;
+    }
 
-    return patch_config->samples[patch_data->pos];
+    return patch_config->samples[patch_data->pos++];
 }
 
 void us_patch_sample_apply(UsPatch *patch) {
-    patch->init_config = init_config;
     patch->init_data = init_data;
     patch->note_on = note_on;
     patch->note_off = note_off;

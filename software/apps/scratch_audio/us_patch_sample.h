@@ -6,8 +6,9 @@ typedef struct {
 } UsPatchSampleData;
 
 typedef struct {
-    uint16_t *samples;
+    int16_t *samples;
     uint32_t sample_count;
 } UsPatchSampleConfig;
 
+void us_patch_sample_init_config(UsPatchSampleConfig* patch_config, int16_t *samples, uint32_t sample_count);
 void us_patch_sample_apply(UsPatch *patch);

@@ -1,10 +1,9 @@
 #include "us_patch_1.h"
 #include "us_debug.h"
 
-static void init_config(void* config) {
+void us_patch_1_init_config(UsPatch1Config* patch1_config) {
     US_DEBUG("US_PATCH: init config\n");
 
-    UsPatch1Config *patch1_config = (UsPatch1Config*)config;
 	us_adsr_config_init(&patch1_config->adsr_config);
     patch1_config->wave_func = us_wave_saw /* us_wave_not_square_lerp  us_wave_saw */;
 }
@@ -61,7 +60,6 @@ static int32_t update(void* data, void* config, UsPatchCallbacks* callbacks, voi
 }
 
 void us_patch_1_apply(UsPatch *patch) {
-    patch->init_config = init_config;
     patch->init_data = init_data;
     patch->note_on = note_on;
     patch->note_off = note_off;

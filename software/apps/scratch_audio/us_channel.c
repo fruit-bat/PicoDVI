@@ -38,8 +38,6 @@ void us_channel_set_patch(
     channel->patch_count = patch_count;
     channel->patch_config = patch_config;
 
-    channel->patch.init_config(patch_config);
-
     us_uint8_dlist_anchor_init_array(channel->patch_state_lists, UsPatchStateCount);
 
     uint8_t* data = patch_data;
