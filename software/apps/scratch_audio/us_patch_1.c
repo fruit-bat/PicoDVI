@@ -1,7 +1,7 @@
 #include "us_patch_1.h"
 #include "us_debug.h"
 
-void init_config(void* config) {
+static void init_config(void* config) {
     US_DEBUG("US_PATCH: init config\n");
 
     UsPatch1Config *patch1_config = (UsPatch1Config*)config;
@@ -17,7 +17,7 @@ static void init_data(void* data, void* config) {
     us_adsr_init(&patch1_data->adsr, &patch1_config->adsr_config);
 }
 
-static void note_on(void* data, uint32_t note, int32_t bend, uint32_t velocity) {
+static void note_on(void* data, void* config, uint32_t note, int32_t bend, uint32_t velocity) {
     US_DEBUG("US_PATCH: note on %ld, bend %ld, velocity %ld\n", note, bend, velocity);
 
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;
@@ -26,14 +26,14 @@ static void note_on(void* data, uint32_t note, int32_t bend, uint32_t velocity) 
     us_adsr_attack(&patch1_data->adsr, velocity);
 }
 
-static void note_off(void* data, uint32_t velocity) {
+static void note_off(void* data, void* config, uint32_t velocity) {
     US_DEBUG("US_PATCH: note off velocity %ld\n", velocity);
 
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;
     us_adsr_release(&patch1_data->adsr);
 }
 
-static void bend(void* data, uint32_t note, int32_t bend) {
+static void bend(void* data, void* config, uint32_t note, int32_t bend) {
     US_DEBUG("US_PATCH: bend note %ld, bend %ld\n", note, bend);
 
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;

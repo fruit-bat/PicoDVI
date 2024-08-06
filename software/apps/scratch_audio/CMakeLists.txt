@@ -4,6 +4,7 @@ add_executable(scratch_audio
 	main.c
 	us_patch.c
 	us_patch_1.c
+	us_patch_sample.c
 	us_lpf.c
 	us_pitch.c
 	us_tuner.c

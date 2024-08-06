@@ -136,6 +136,7 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
         // Tell the patch to turn on a note
         channel->patch.note_on(
             get_patch_data(channel, patch_index),
+            channel->patch_config,
             note, 
             channel->bend, 
             velocity
@@ -157,6 +158,7 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
                 // This is a release TODO rename
                 channel->patch.note_off(
                     get_patch_data(channel, patch_index),
+                    channel->patch_config,
                     velocity
                 );
 
@@ -186,6 +188,7 @@ void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
                 UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
                 channel->patch.bend(
                     get_patch_data(channel, patch_index), // The data the patch needs to function
+                    channel->patch_config,
                     patch_state->note,
                     bend
                 );
@@ -200,6 +203,7 @@ void __not_in_flash_func(us_channel_bend)(UsChannel* channel, int32_t bend) {
                 UsChannelPatchState *patch_state = &channel->patch_state[patch_index];
                 channel->patch.bend(
                     get_patch_data(channel, patch_index), // The data the patch needs to function
+                    channel->patch_config,
                     patch_state->note,
                     bend
                 );
