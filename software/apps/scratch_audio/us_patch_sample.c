@@ -26,10 +26,6 @@ static void note_on(void* data, void* config, uint32_t note, int32_t bend, uint3
 static void note_off(void* data, void* config, uint32_t velocity) {
     US_DEBUG("US_PATCH_SAMPLE: note off velocity %ld\n", velocity);
 
-    UsPatchSampleData *patch_data = (UsPatchSampleData*)data;
-    UsPatchSampleConfig *patch_config = (UsPatchSampleConfig*)config;
-
-    patch_data->pos = patch_config->sample_count;
 }
 
 static void bend(void* data, void* config, uint32_t note, int32_t bend) {

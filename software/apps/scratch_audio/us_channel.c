@@ -166,12 +166,8 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
                     UsPatchStateRelease
                 );
 
-                channel->notes[note] = US_NOT_A_NOTE;
             }
-            else {
-                // Something has gone wrong with our indexing
-                US_DEBUG("US_CHANNEL: ERROR releasing note %lu on patch %u, expected note %u\n", note, patch_index, patch_state->note);
-            }
+            channel->notes[note] = US_NOT_A_NOTE;
         }
     }
 }
