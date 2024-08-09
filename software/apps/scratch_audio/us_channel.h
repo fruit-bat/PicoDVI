@@ -14,12 +14,16 @@ typedef struct {
 } UsChannelPatchState;
 
 typedef struct {
+
     // Output storage
     int32_t out_l;
     int32_t out_r;
 
     // Pitch bend is channel wide
     int32_t bend;
+
+    // Channel id
+    uint8_t id;
 
     // 0 <= Gain <= 128 // TODO Think about this one (0-127 coming from midi files)
     uint8_t gain;
@@ -48,7 +52,7 @@ typedef struct {
     void *patch_config;
 
     // sizeof 1 element of patch_data
-    size_t patch_data_size; 
+    size_t patch_data_size;
 
     // Callbacks from the patch to notify the channel of state changes
     UsPatchCallbacks patch_callbacks;
@@ -63,7 +67,7 @@ void us_channel_patch_cb_release(void *d, uint32_t id);
 void us_channel_patch_cb_off(void *d, uint32_t id);
 
 // API
-void us_channel_init(UsChannel *channel);
+void us_channel_init(UsChannel *channel, uint8_t id);
 void us_channel_update(UsChannel* channel);
 void us_channel_note_on(UsChannel* channel, uint32_t note, uint32_t velocity);
 void us_channel_note_release(UsChannel* channel, uint32_t note, uint32_t velocity);
@@ -79,7 +83,7 @@ inline void us_channel_pan(UsChannel* channel, uint32_t pan) {
 
 void us_channel_set_patch(
     UsChannel *channel,
-    void (*init_patch)(UsPatch *patch), 
+    void (*init_patch)(UsPatch *patch),
     void * patch_config,
     void * patch_data,
     size_t patch_data_size,

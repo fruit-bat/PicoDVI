@@ -40,15 +40,15 @@ inline void us_uint8_dlist_entry_init_array(UsUint8DlistEntry *entry, uint32_t c
 inline void us_uint8_dlist_unlink(
     UsUint8DlistAnchor *anchor,
     void *entries,
-    UsUint8DlistEntry *(*get_entry)(void *entries, uint8_t index), 
+    UsUint8DlistEntry *(*get_entry)(void *entries, uint8_t index),
     uint8_t index
 ) {
     UsUint8DlistEntry *entry = get_entry(entries, index);
 
     if (entry->next == US_UINT8_DLIST_NULL) {
         // entry at the end of the list
-        anchor->tail = entry->last;
-    } 
+        if (entry->self == anchor->tail) anchor->tail = entry->last;
+    }
     else {
         // entry not at the end of the list
         get_entry(entries, entry->next)->last = entry->last;
@@ -56,8 +56,8 @@ inline void us_uint8_dlist_unlink(
 
     if (entry->last == US_UINT8_DLIST_NULL) {
         // entry at the start of the list
-        anchor->head = entry->next;
-    } 
+        if (entry->self == anchor->head) anchor->head = entry->next;
+    }
     else {
         // entry not at the start of the list
         get_entry(entries, entry->last)->next = entry->next;
@@ -71,7 +71,7 @@ inline void us_uint8_dlist_unlink(
 inline void us_uint8_dlist_link_head(
     UsUint8DlistAnchor *anchor,
     void *entries,
-    UsUint8DlistEntry *(*get_entry)(void *entries, uint8_t index), 
+    UsUint8DlistEntry *(*get_entry)(void *entries, uint8_t index),
     uint8_t index
 ) {
     UsUint8DlistEntry *entry = get_entry(entries, index);

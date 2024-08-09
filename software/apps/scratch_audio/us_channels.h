@@ -1,11 +1,14 @@
 #pragma once
 #include "us_channel.h"
+#include "us_uint8_dlist.h"
 
 #define US_CHANNEL_COUNT_LOG2 2L
 #define US_CHANNEL_COUNT (1 << US_CHANNEL_COUNT_LOG2)
 
 typedef struct {
     UsChannel channel[US_CHANNEL_COUNT];
+    UsUint8DlistAnchor active_channels;
+    UsUint8DlistEntry channel_links[US_CHANNEL_COUNT];
     int32_t out_l;
     int32_t out_r;
 } UsChannels;

@@ -8,10 +8,10 @@ static UsUint8DlistEntry * __not_in_flash_func(get_patch_state_entry)(void* entr
 
 inline void* get_patch_data(UsChannel *channel, uint8_t patch_index) {
     uint8_t* patch_data = channel->patch_data;
-    return patch_data + (channel->patch_data_size * patch_index);  
+    return patch_data + (channel->patch_data_size * patch_index);
 }
 
-void us_channel_init(UsChannel *channel) {
+void us_channel_init(UsChannel *channel, uint8_t id) {
     channel->out_l = 0;
     channel->out_r = 0;
     channel->bend = 0;
@@ -20,15 +20,16 @@ void us_channel_init(UsChannel *channel) {
     channel->patch_count = 0;
     channel->patch_callbacks.off = us_channel_patch_cb_off;
     channel->patch_callbacks.release = us_channel_patch_cb_release;
+    channel->id = id;
 }
 
 void us_channel_set_patch(
     UsChannel *channel,
-    void (*init_patch)(UsPatch *patch), 
+    void (*init_patch)(UsPatch *patch),
     void * patch_config,
-    void * patch_data, 
+    void * patch_data,
     size_t patch_data_size,
-    UsChannelPatchState *patch_state, 
+    UsChannelPatchState *patch_state,
     uint32_t patch_count) {
 
     init_patch(&channel->patch);
@@ -113,7 +114,7 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
             else {
                 patch_index = patch_state_list_release->tail;
             }
-        } 
+        }
         else {
             patch_index = patch_state_list_off->tail;
         }
@@ -135,8 +136,8 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
         channel->patch.note_on(
             get_patch_data(channel, patch_index),
             channel->patch_config,
-            note, 
-            channel->bend, 
+            note,
+            channel->bend,
             velocity
         );
     }
