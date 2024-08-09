@@ -23,8 +23,8 @@ static void note_on(void* data, void* config, uint32_t note, int32_t bend, uint3
     patch_data->pos = 0;
 }
 
-static void note_off(void* data, void* config, uint32_t velocity) {
-    US_DEBUG("US_PATCH_SAMPLE: note off velocity %ld\n", velocity);
+static void note_release(void* data, void* config, uint32_t velocity) {
+    US_DEBUG("US_PATCH_SAMPLE: note release velocity %ld\n", velocity);
 
 }
 
@@ -47,7 +47,7 @@ static int32_t update(void* data, void* config, UsPatchCallbacks* callbacks, voi
 void us_patch_sample_apply(UsPatch *patch) {
     patch->init_data = init_data;
     patch->note_on = note_on;
-    patch->note_off = note_off;
+    patch->note_release = note_release;
     patch->bend = bend;
     patch->update = update;
 }

@@ -82,7 +82,7 @@ UsPmCursor __not_in_flash_func(us_pm_step)(
 
             UsChannel *channel = us_channels_get(channels, c);
 
-            if (channel) us_channel_note_off(channel, k, v);
+            if (channel) us_channel_note_release(channel, k, v);
 
             cursor += SynCmdOffLen;
             break;

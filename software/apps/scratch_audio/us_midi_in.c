@@ -48,7 +48,7 @@ static inline void us_midi_in_status_message(UsMidiIn *us_midi_in) {
             const uint32_t k = us_midi_in_data(us_midi_in, 0);
             const uint32_t v = us_midi_in_data(us_midi_in, 1);
  //           printf("Note off: n=%ld k=%ld v=%ld\n", n, k, v);
-            us_channel_note_off(channel, k, v);
+            us_channel_note_release(channel, k, v);
             break;
         }
         case 1: { // 1001nnnn	0kkkkkkk	0vvvvvvv	Note On	n=channel k=key # 0-127(60=middle C) v=velocity (0-127)
@@ -56,7 +56,7 @@ static inline void us_midi_in_status_message(UsMidiIn *us_midi_in) {
             const uint32_t v = us_midi_in_data(us_midi_in, 1);
 //            printf("Note on: n=%ld k=%ld v=%ld\n", n, k, v);
             if (v) us_channel_note_on(channel, k, v);
-            else us_channel_note_off(channel, k, v);
+            else us_channel_note_release(channel, k, v);
             break;
         }
         case 3: { // 1011nnnn	0ccccccc    0vvvvvvv	Control Change.

@@ -25,8 +25,8 @@ static void note_on(void* data, void* config, uint32_t note, int32_t bend, uint3
     us_adsr_attack(&patch1_data->adsr, velocity);
 }
 
-static void note_off(void* data, void* config, uint32_t velocity) {
-    US_DEBUG("US_PATCH: note off velocity %ld\n", velocity);
+static void note_release(void* data, void* config, uint32_t velocity) {
+    US_DEBUG("US_PATCH: note release velocity %ld\n", velocity);
 
     UsPatch1Data *patch1_data = (UsPatch1Data*)data;
     us_adsr_release(&patch1_data->adsr);
@@ -62,7 +62,7 @@ static int32_t update(void* data, void* config, UsPatchCallbacks* callbacks, voi
 void us_patch_1_apply(UsPatch *patch) {
     patch->init_data = init_data;
     patch->note_on = note_on;
-    patch->note_off = note_off;
+    patch->note_release = note_release;
     patch->bend = bend;
     patch->update = update;
 }

@@ -99,7 +99,7 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
     if (channel->patch_count) {
         uint8_t patch_index = channel->notes[note];
         if (patch_index != US_NOT_A_NOTE) {
-            us_channel_note_off(channel, note, 0);
+            us_channel_note_release(channel, note, 0);
         }
 
         UsUint8DlistAnchor *patch_state_list_off = &channel->patch_state_lists[UsPatchStateOff];
@@ -142,8 +142,7 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
     }
 }
 
-// This is a release TODO rename
-void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
+void us_channel_note_release(UsChannel* channel, uint32_t note, uint32_t velocity) {
     if (channel->patch_count) {
         uint8_t patch_index = channel->notes[note];
         if (patch_index != US_NOT_A_NOTE)
@@ -153,8 +152,7 @@ void us_channel_note_off(UsChannel* channel, uint32_t note, uint32_t velocity) {
 
                 US_DEBUG("US_CHANNEL: releasing note %lu\n", note);
 
-                // This is a release TODO rename
-                channel->patch.note_off(
+               channel->patch.note_release(
                     get_patch_data(channel, patch_index),
                     channel->patch_config,
                     velocity
