@@ -11,7 +11,22 @@ inline void* get_patch_data(UsChannel *channel, uint8_t patch_index) {
     return patch_data + (channel->patch_data_size * patch_index);
 }
 
-void us_channel_init(UsChannel *channel, uint8_t id) {
+inline bool us_channel_active(UsChannel *channel) {
+    return channel->patch_state_lists[UsPatchStateRelease].head != US_UINT8_DLIST_NULL ||
+        channel->patch_state_lists[UsPatchStateOn].head != US_UINT8_DLIST_NULL;
+}
+
+inline bool us_channel_inactive(UsChannel *channel) {
+    return channel->patch_state_lists[UsPatchStateRelease].head == US_UINT8_DLIST_NULL &&
+        channel->patch_state_lists[UsPatchStateOn].head == US_UINT8_DLIST_NULL;
+}
+
+void us_channel_init(
+    UsChannel *channel,
+    uint8_t id, 
+    void* callback_data, 
+    void (*on)(void *data, uint8_t id), 
+    void (*off)(void *data, uint8_t id)) {
     channel->out_l = 0;
     channel->out_r = 0;
     channel->bend = 0;
@@ -21,6 +36,9 @@ void us_channel_init(UsChannel *channel, uint8_t id) {
     channel->patch_callbacks.off = us_channel_patch_cb_off;
     channel->patch_callbacks.release = us_channel_patch_cb_release;
     channel->id = id;
+    channel->callback_data = callback_data;
+    channel->callback_on = on;
+    channel->callback_off = off;
 }
 
 void us_channel_set_patch(
@@ -125,12 +143,17 @@ void __not_in_flash_func(us_channel_note_on)(UsChannel* channel, uint32_t note, 
 
         channel->notes[note] = patch_index;
 
+        if (us_channel_inactive(channel)) {
+            channel->callback_on(channel->callback_data, channel->id);
+        }
+
         // Move the patch instance into the 'on' list
         us_channel_relink_patch_state(
             channel,
             patch_index,
             UsPatchStateOn
         )->note = note;
+
 
         // Tell the patch to turn on a note
         channel->patch.note_on(
@@ -272,4 +295,8 @@ void __not_in_flash_func(us_channel_patch_cb_off)(void *d, uint32_t patch_index)
         UsPatchStateOff
     );
     patch_state->note = US_NOT_A_NOTE;
+
+    if (us_channel_inactive(channel)) {
+        channel->callback_off(channel->callback_data, channel->id);
+    }
 }

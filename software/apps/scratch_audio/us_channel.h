@@ -60,6 +60,10 @@ typedef struct {
     // An index of note to patch instance
     uint8_t notes[US_NOTE_COUNT];
 
+    void *callback_data;
+    void (*callback_on)(void *data, uint8_t id);
+    void (*callback_off)(void *data, uint8_t id);
+
 } UsChannel;
 
 // Patch callbacks
@@ -67,7 +71,13 @@ void us_channel_patch_cb_release(void *d, uint32_t id);
 void us_channel_patch_cb_off(void *d, uint32_t id);
 
 // API
-void us_channel_init(UsChannel *channel, uint8_t id);
+void us_channel_init(
+    UsChannel *channel,
+    uint8_t id, 
+    void* callback_data, 
+    void (*on)(void *data, uint8_t id), 
+    void (*off)(void *data, uint8_t id));
+
 void us_channel_update(UsChannel* channel);
 void us_channel_note_on(UsChannel* channel, uint32_t note, uint32_t velocity);
 void us_channel_note_release(UsChannel* channel, uint32_t note, uint32_t velocity);
