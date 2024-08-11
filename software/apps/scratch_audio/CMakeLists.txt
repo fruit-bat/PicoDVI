@@ -1,4 +1,5 @@
 add_executable(scratch_audio
+	inv_samples.c
 	ug_renderer.c
 	ug_terminal.c
 	main.c

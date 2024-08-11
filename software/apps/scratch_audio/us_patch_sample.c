@@ -1,7 +1,7 @@
 #include "us_patch_sample.h"
 #include "us_debug.h"
 
-void us_patch_sample_init_config(UsPatchSampleConfig* patch_config, int16_t *samples, uint32_t sample_count) {
+void us_patch_sample_init_config(UsPatchSampleConfig* patch_config, const int16_t *samples, uint32_t sample_count) {
     US_DEBUG("US_PATCH_SAMPLE: init config\n");
 
     patch_config->samples = samples;

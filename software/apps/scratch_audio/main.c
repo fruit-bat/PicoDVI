@@ -30,7 +30,7 @@
 //#include "pitch_bend_packed_midi.h"
 #include "us_patch_1.h"
 #include "us_patch_sample.h"
-#include "inv_shoot_int16.h"
+#include "inv_samples.h"
 #include "us_midi_in.h"
 
 // End music stuff
@@ -79,9 +79,9 @@ static UsChannelPatchState patch2_state[US_PATCH2_COUNT];
 static UsPatch1Config patch2_config;
 
 #define US_PATCH_S1_COUNT 4
-static UsPatchSampleData patch_s1_data[US_PATCH_S1_COUNT];
-static UsChannelPatchState patch_s1_state[US_PATCH_S1_COUNT];
-static UsPatchSampleConfig patch_s1_config;
+static UsPatchSampleData patch_s1_data[InvSampleCount][US_PATCH_S1_COUNT];
+static UsChannelPatchState patch_s1_state[InvSampleCount][US_PATCH_S1_COUNT];
+static UsPatchSampleConfig patch_s1_config[InvSampleCount];
 
 static UsChannels channels;
 static UsPmSequencer sequencer;
@@ -118,16 +118,23 @@ void setup_synth() {
 		patch2_state,
 		US_PATCH2_COUNT);
 
-	us_patch_sample_init_config(&patch_s1_config, (int16_t *)inv_shoot_int16, sizeof(inv_shoot_int16) /2);
+	for (uint32_t i = 0; i < InvSampleCount; ++i) {
 
-	us_channel_set_patch(
-		&channels.channel[2],
-		us_patch_sample_apply,
-		&patch_s1_config,
-		patch_s1_data,
-		sizeof(UsPatchSampleData),
-		patch_s1_state,
-		US_PATCH_S1_COUNT);
+		UsPatchSampleConfig *config = &patch_s1_config[i];
+		UsPatchSampleData *data = &patch_s1_data[i][0];
+		UsChannelPatchState *state = &patch_s1_state[i][0];
+
+		us_patch_sample_init_config(config, inv_sample(i), inv_sample_size(i));
+
+		us_channel_set_patch(
+			&channels.channel[2+i],
+			us_patch_sample_apply,
+			config,
+			data,
+			sizeof(UsPatchSampleData),
+			state,
+			US_PATCH_S1_COUNT);
+	}
 
 	us_pm_sequencer_init(&sequencer, &channels, syn_notes, true);
 

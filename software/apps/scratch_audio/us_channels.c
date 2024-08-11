@@ -1,8 +1,6 @@
 #include "us_channels.h"
 #include "us_debug.h"
 
-#define US_DEBUG(...) printf(__VA_ARGS__)
-
 UsUint8DlistEntry * __not_in_flash_func(us_channel_get_link)(void *entries, uint8_t index){
     UsUint8DlistEntry* channel_links = (UsUint8DlistEntry*)entries;
     return &channel_links[index];

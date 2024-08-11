@@ -2,7 +2,7 @@
 #include "us_channel.h"
 #include "us_uint8_dlist.h"
 
-#define US_CHANNEL_COUNT_LOG2 2L
+#define US_CHANNEL_COUNT_LOG2 4L
 #define US_CHANNEL_COUNT (1 << US_CHANNEL_COUNT_LOG2)
 
 typedef struct {
