@@ -9,7 +9,6 @@
 #include "hardware/gpio.h"
 #include "hardware/vreg.h"
 #include "hardware/structs/bus_ctrl.h"
-#include "hardware/structs/ssi.h"
 #include "hardware/dma.h"
 #include "pico/sem.h"
 
@@ -409,7 +408,7 @@ int __not_in_flash_func(main)() {
 	dvi0.ser_cfg = DVI_DEFAULT_SERIAL_CONFIG;
 	dvi_init(&dvi0, next_striped_spin_lock_num(), next_striped_spin_lock_num());
 
-	hw_set_bits(&bus_ctrl_hw->priority, BUSCTRL_BUS_PRIORITY_PROC1_BITS);
+//	hw_set_bits(&bus_ctrl_hw->priority, BUSCTRL_BUS_PRIORITY_PROC1_BITS);
 
 	setup_synth();
 
