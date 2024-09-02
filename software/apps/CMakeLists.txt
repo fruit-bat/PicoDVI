@@ -1,4 +1,7 @@
-add_subdirectory(bad_apple)
+if (NOT PICO_RISCV)
+	# Arm assembly needs porting to RISC-V
+	add_subdirectory(bad_apple)
+endif()
 add_subdirectory(colour_terminal)
 add_subdirectory(colour_terminal_audio)
 add_subdirectory(christmas_snowflakes)
@@ -16,5 +19,8 @@ add_subdirectory(tiles_and_sprites)
 add_subdirectory(tiles_and_sprites_audio)
 add_subdirectory(tiles_parallax)
 add_subdirectory(vista)
-add_subdirectory(vista-palette)
+if (PICO_RP2040)
+	# Needs porting to use XIP stream instead of SSI, as was done to vista
+	add_subdirectory(vista-palette)
+endif()
 add_subdirectory(mandel-full)
